@@ -1,0 +1,10 @@
+library(ggplot2)
+library(reshape2)
+args <- commandArgs(TRUE)
+d <- read.table(args[1], header=F)
+colnames(d) <- c("id","variable","values")
+#df <- dcast(d, id~variable)
+
+pdf(args[2], height=10, width=8)
+qplot(data=d, x = id, y = values, geom="bar", stat = "identity") + facet_wrap("variable", scales="free") + theme(text = element_text(size=10), axis.text.x = element_text(angle=90, vjust=0.5, hjust=0.5), panel.background = element_rect(fill = 'white', colour = 'black'))
+dev.off()
