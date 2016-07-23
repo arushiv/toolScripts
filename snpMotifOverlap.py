@@ -43,7 +43,7 @@ def calculate_motif_probabilites(x,y,z):
             if i == zeroth+y:
                 probability = line
         if z=="+":
-            return probability
+            return probability.rstrip()
         elif z=="-":
             p = probability.split()
             return p[3]+'\t'+p[2]+'\t'+p[1]+'\t'+p[0]
@@ -57,7 +57,8 @@ def calculate_motif_information_content(x):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('datfile', help="""The data file, tab delimited. Should contain at least these columns:\nsnp_chrom snp_start snp_end motif_chrom motif_start motif_end motif strand""")
+    parser.add_argument('datfile', help="""The data file, tab delimited. Should contain at least these columns:\nsnp_chrom snp_start snp_end motif_chrom motif_start motif_end motif strand. \n Output has the following columns appended: overlap_position overlap_position_relative_to_fo\
+rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinformation_content""")
     args = parser.parse_args()
 
 

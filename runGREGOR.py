@@ -80,7 +80,7 @@ class RunGregor(object):
             at = 1
             for lines in range(0, len(input), bedFilesPerJob):
                 outputData = input[lines:lines+bedFilesPerJob]
-                output = open(os.path.join(self.workingDirectory,'bedFileIndex_%s_%s.txt'%(self.nameGregorRun,str(at))), 'w')
+                output = open(os.path.join(self.workingDirectory,'bedFileIndex_%s_%s.txt'%(str(at),self.nameGregorRun)), 'w')
                 output.write('\n'.join(outputData))
                 output.close()
                 at += 1
@@ -91,10 +91,17 @@ class RunGregor(object):
             newfile = os.path.join(self.workingDirectory, "enrich_%s.conf"%filename)
             shutil.copy(sampleConfFile, newfile)
             stringReplace(newfile, "INDEX_SNP_FILE =","INDEX_SNP_FILE = %s"%os.path.join(snpFileDirectory,"%s.txt"%namelist[0]))
-            if len(namelist) != 1:
-                stringReplace(newfile, "BED_FILE_INDEX =","BED_FILE_INDEX = %s"%os.path.join(self.workingDirectory,"bedFileIndex_%s.txt"%namelist[-1]))
+            if self.bedCounter == 1:
+                if self.nameGregorRun != "":
+                    stringReplace(newfile, "BED_FILE_INDEX =","BED_FILE_INDEX = %s"%os.path.join(self.workingDirectory,"bedFileIndex_%s.txt"%self.nameGregorRun))
+                else:
+                    stringReplace(newfile, "BED_FILE_INDEX =","BED_FILE_INDEX = %s"%os.path.join(self.workingDirectory,"bedFileIndex.txt"))
             else:
-                stringReplace(newfile, "BED_FILE_INDEX =","BED_FILE_INDEX = %s"%os.path.join(self.workingDirectory,"bedFileIndex.txt"))
+                if self.nameGregorRun == "":
+                    stringReplace(newfile, "BED_FILE_INDEX =","BED_FILE_INDEX = %s"%os.path.join(self.workingDirectory,"bedFileIndex_%s.txt"%namelist[-1]))
+                else:
+                    stringReplace(newfile, "BED_FILE_INDEX =","BED_FILE_INDEX = %s"%os.path.join(self.workingDirectory,"bedFileIndex_%s_%s.txt"%(namelist[-2],self.nameGregorRun)))
+                    
             if len(linkageDisequilibrium) != 1:
                 stringReplace(newfile, "R2THRESHOLD =","R2THRESHOLD = %s"%namelist[1])
             stringReplace(newfile, "OUT_DIR =","OUT_DIR = %s"%os.path.join(self.workingDirectory,"output_%s"%filename))
@@ -108,9 +115,9 @@ class RunGregor(object):
             for filename in self.fileList:
                 f.write("GREGOR.pl --conf enrich_%s.conf\n"%filename)
             f.write("\n# drmr:wait\n")
-            f.write("\n# drmr:job nodes=1 processors=1 processor_memory=4000 time_limit=20:00\n")
+            f.write("\n# drmr:job nodes=1 processors=1 processor_memory=4000 time_limit=1:00:00\n")
             for filename in self.fileList:
-                f.write("/lab/arushiv/toolScripts/makeDataFrame_gregor.py output_%s/StatisticSummaryFile.txt stats_%s.dat\n"%(filename, self.nameGregorRun))
+                f.write(" python /lab/arushiv/toolScripts/makeDataFrame_gregor.py output_%s/StatisticSummaryFile.txt stats_%s.dat; "%(filename, self.nameGregorRun))
 
     def submitDrmrJob(self):
         # runfile = os.path.join(self.workingDirectory, runfile)

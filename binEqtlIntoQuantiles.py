@@ -33,7 +33,8 @@ def splitByQuantile(quantilef, eqtlf, column_gene, qf, outputfile):
             with open(outputfile, 'w') as fout:
                 for line in eqtlfile:
                     for stuff in quantilefile:
-                        if (line[column_gene - 1]).split('.')[0] == stuff[qf - 1]:
+                        if line[column_gene - 1] == stuff[qf - 1]:   ### If gene name format in both files is same
+                        # if (line[column_gene - 1]).split('.')[0] == stuff[qf - 1]:      ### If gene name format in quantile file is not of the format ENSG00XYZW.K
                             fout.write('\t'.join(line))
                             fout.write('\n')
                     qfile.seek(0)
@@ -57,34 +58,3 @@ if __name__ == '__main__':
     qf = args.column_quantileFile
     
     splitByQuantile(quantilef, eqtlf, column_gene, qf, outputfile)
-    
-    # with open_maybe_gzipped(args.mapfile) as m_file, open_maybe_gzipped(args.segmentfile) as s_file, open(args.outputfile, 'w+') as o_file:
-    #     map_file = csv.reader(m_file, delimiter='\t', dialect='excel-tab')
-    #     main_list = []
-    #     next(segment_file, None) # skip track header
-    #     for line in segment_file:
-    #        segment_chrom[line[0]].append([line[0], float(line[1]), float(line[2])) # Divide segmentation data by chromosome
-    #     for filename in glob.glob('strongEnhancerSegments_allCells/*.bed'):
-    #             with open_maybe_gzipped(filename) as s_file:
-    #             segment_file = csv.reader(s_file, delimiter='\t', dialect='excel-tab')
-    #             segment_chrom = collections.defaultdict(list)
-    #             if line_start >= segment_start and line_end <= segment_end:    # Falls fully inside
-    #                 fraction += (line_end - line_start) / 200
-    #                 print "found"
-    #                 print fraction
-    #                 break
-    #             elif (segment_start <= line_start <= segment_end) and (line_end > segment_end):   # end coordinate outside segment end coordinate
-    #                 fraction += (segment_end - line_start) / 200
-    #                 line_start = segment_end + 1
-    #                 print "here"
-    #                 print fraction
-    #             elif (line_start < segment_start) and (segment_start <= line_end <= segment_end):   # start coordinate outside segment start coordinate
-    #                 fraction += (line_end - segment_start) / 200
-    #                 print "or here"
-    #                 print fraction
-    #                 break
-    #     if fraction < 0.5:
-    #         temp_list.append(0)
-    #     elif fraction >= 0.5:
-    #         temp_list.append(1)
-                

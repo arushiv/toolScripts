@@ -27,10 +27,12 @@ import fnmatch
 def makedataframe(filename, fieldSeparator, outputfilename):
     with open(outputfilename, 'a') as fout:
         with open(filename) as f:
+            snplist = ((filename.split('/')[0]).replace('output_','')).split('_')
+            snpcolumns = '\t'.join(snplist[0].split('.')+snplist[1:])
+                   
             for line in f:
                 if "Bed_File" not in line:
-                    s=line.split(' ')
-                    snpcolumns = '\t'.join(((filename.split('/')[0]).replace('output_','')).split('_'))
+                    s = line.split('\t')
                     namecolumns = '\t'.join((s[0].replace('.bed','')).split(fieldSeparator))
                     datacolumn = '\t'.join(s[1:])
                     fout.write("%s\t%s\t%s"%(snpcolumns,namecolumns,datacolumn))
@@ -44,8 +46,8 @@ if __name__ == '__main__':
     parser.add_argument('outputfilename', help="""Output file name.""")
     args = parser.parse_args()
 
-    filename=args.filename
-    fieldSeparator=args.nameFieldSeparator
-    outputfilename=args.outputfilename
+    filename = args.filename
+    fieldSeparator = args.nameFieldSeparator
+    outputfilename = args.outputfilename
 
     makedataframe(filename, fieldSeparator, outputfilename)
