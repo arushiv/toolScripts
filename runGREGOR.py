@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run GREGOR: Fix conf files, submit drmr commands, compile dataframe and plot.')
     parser.add_argument('snpFileDirectory', type=str, help="""The directory with SNP files where GREGOR would be run for each such file. Should be in chr:pos or rsID format; filename should not contain '_'""")
     parser.add_argument('bedFileDirectory', type=str, help="""The directory with (unzipped) bed files""")
-    parser.add_argument('-f','--sampleConfFile', nargs='?', default='/lab/arushiv/toolScripts/gregor_sampleConfFile.conf',
+    parser.add_argument('-f','--sampleConfFile', nargs='?', default='/home/arushiv/toolScripts/gregor_sampleConfFile.conf',
                         help="""Sample .conf file where only snp file, bed file and output folder will be changed. (default: /lab/arushiv/toolScripts/gregor_sampleConfFile.conf)""")
     parser.add_argument('-n','--bedFilesPerJob', nargs='?', default='1', help="""Number of bedfiles per GREGOR job. (default: GREGOR runs all bedfiles in one job for each SNP file)""")
     parser.add_argument('-ld', '--linkageDisequilibrium', nargs='?', default='0.8', help="""minimum LD for proxy SNPs. Multiple LD values to be supplied comma (,) separated. (default: 0.8)""")
