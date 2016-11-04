@@ -29,6 +29,7 @@ def makeLdBedFile(df):  # From index SNP and LD buddy dataframe, make bed file w
                 pos = row['LD_buddy_pos'].split("|")
                 for stuff in pos:
                         d = pandas.read_table(StringIO("%s\t%s\t%s"%(chrom,stuff,stuff)), sep="\t", header=None)
+                        d['index_SNP'] = row['index_SNP']
                         # d = pandas.read_table(StringIO("%s\t%s\t%s"%(chrom,int(stuff)-1,stuff)), sep="\t", header=None)
                         snp_df = snp_df.append(d, ignore_index=True)
         return snp_df
@@ -37,16 +38,17 @@ def determineOverlaps(df, files): # Intersect original bed file and the snp bed 
         snp_bed = pybedtools.BedTool.from_dataframe(df)
         bedfile = pybedtools.BedTool(files.rstrip())
         output = snp_bed.intersect(bedfile).to_dataframe()
+
         return output
 
     
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='From eQTL enrichment in features GREGOR output, fetch all tag + LD SNP overlaps for a given bed file')
+    parser = argparse.ArgumentParser(description='From enrichment in features GREGOR output, fetch all tag + LD SNP overlaps for a given bed file. Working directory to be the one which contains bed_path_file if it is provided in an argument', usage='~/myEnv/bin/python gregorFindAllOverlappingSnps.py <gregor output folder> <output file> -f <comma separated paths to bed files to check overlaps in>')
     parser.add_argument('gregorOutputFolder', type=str, help="""GREGOR output directory.""")
     parser.add_argument('-p','--bed_path_file', type=str, help="""The bed path file used for running GREGOR.""")
     parser.add_argument('-f','--feature', type=str, help="""Only fetch overlapping SNPs for a specific bed file paths. Paths supplied as comma separated strings""")
-    parser.add_argument('outputfile', help ="""Output file. Will contain atleast: Bed_File,index_SNP,gene columns""")
+    parser.add_argument('outputfile', help ="""Output file. Will contain these new columns: chrom   pos index_SNP filename""")
     args = parser.parse_args()
 
     gregorOutputFolder = args.gregorOutputFolder
@@ -69,11 +71,11 @@ for files in bedList:
                 ldBedFile = makeLdBedFile(df)
                 overlappingSnps = determineOverlaps(ldBedFile, files)
                 overlappingSnps['filename'] = os.path.basename(files.rstrip())
-                outdf = outdf.append(overlappingSnps[['chrom','end','filename']], ignore_index=True)
+                outdf = outdf.append(overlappingSnps[['chrom','end','name','filename']], ignore_index=True)
         else:
                 continue
 
         
-outdf.to_csv(outputfile, sep='\t', index=False)
+outdf.to_csv(outputfile, sep='\t', index=False, header=["snp_chrom","snp_pos","index_snp","filename"])
 
-    # printOutput(fetchGenesForOverlappingSnps(overlappingSNPs, eqtl_gene_file), outputfile)
+
