@@ -117,7 +117,7 @@ class RunGregor(object):
             f.write("\n# drmr:wait\n")
             f.write("\n# drmr:job nodes=1 processors=1 processor_memory=4000 time_limit=1:00:00\n")
             for filename in self.fileList:
-                f.write(" python /lab/arushiv/toolScripts/makeDataFrame_gregor.py output_%s/StatisticSummaryFile.txt stats_%s.dat; "%(filename, self.nameGregorRun))
+                f.write(" python /home/arushiv/toolScripts/makeDataFrame_gregor.py output_%s/StatisticSummaryFile.txt stats_%s.dat; "%(filename, self.nameGregorRun))
 
     def submitDrmrJob(self):
         # runfile = os.path.join(self.workingDirectory, runfile)
