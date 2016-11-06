@@ -43,8 +43,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    file1 = pandas.read_csv(args.file1, sep='\t', header = None)
-    file2 = pandas.read_csv(args.file2, sep='\t', header = None)
+    file1 = pandas.read_csv(args.file1, sep='\t', header = None, dtype=str)
+    file2 = pandas.read_csv(args.file2, sep='\t', header = None, dtype=str)
     column_1 = args.column_1 - 1  ## Because Python index starts from 0
     column_2 = args.column_2 - 1
     outputfile = args.outputfile

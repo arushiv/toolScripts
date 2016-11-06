@@ -64,10 +64,10 @@ if __name__ == '__main__':
 
     beds = [ makeBedTool(x) for x in bedfile ]  # Bedtools for each file
 
-    stuff = list(range(1, len(bedfile)))
+    stuff = list(range(1, len(bedfile)+1))
 
     venn_arguments = []
-    genome = 3095677412
+    # genome = 3095677412
     
     for a,number in zip(range(0, len(beds)+1), range(0, len(stuff)+1)):
         for subset, subset_number in zip(itertools.combinations(beds, a), itertools.combinations(stuff, number)):
