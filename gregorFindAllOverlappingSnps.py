@@ -22,17 +22,14 @@ def getLdSnps(files, gregorOutputFolder):  # from index.SNP.in.LD.Chrxx files, m
 
         return mdf
         
+
 def makeLdBedFile(df):  # From index SNP and LD buddy dataframe, make bed file with chrom start end for each snp and LD snp
-        snp_df = pandas.DataFrame()
-        for index, row in df.iterrows():
-                chrom = row['index_SNP'].split(":")[0]
-                pos = row['LD_buddy_pos'].split("|")
-                for stuff in pos:
-                        d = pandas.read_table(StringIO("%s\t%s\t%s"%(chrom,stuff,stuff)), sep="\t", header=None)
-                        d['index_SNP'] = row['index_SNP']
-                        # d = pandas.read_table(StringIO("%s\t%s\t%s"%(chrom,int(stuff)-1,stuff)), sep="\t", header=None)
-                        snp_df = snp_df.append(d, ignore_index=True)
-        return snp_df
+        s = df['LD_buddy_pos'].str.split('|').apply(pandas.Series, 1).stack()
+        s.index = s.index.droplevel(-1)
+        s.name = 'pos'
+        df = pandas.DataFrame(df["index_SNP"].str.split(':').tolist(), columns = ['chrom','index_SNP'])
+        return df.join(s)[['chrom','pos','pos','index_SNP']]
+
 
 def determineOverlaps(df, files): # Intersect original bed file and the snp bed file with snp and LD snps
         snp_bed = pybedtools.BedTool.from_dataframe(df)
@@ -75,7 +72,6 @@ for files in bedList:
         else:
                 continue
 
-        
-outdf.to_csv(outputfile, sep='\t', index=False, header=["snp_chrom","snp_pos","index_snp","filename"])
+outdf.to_csv(outputfile, sep='\t', index=False, header=["snp_chrom","snp_OverlapPos","index_snp","filename"])
 
 
