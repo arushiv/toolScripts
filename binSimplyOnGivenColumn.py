@@ -1,0 +1,1 @@
+../chromatin/insPIRE_analyses/binByBeta/betaByMafBin/binSimplyOnGivenColumn.py
