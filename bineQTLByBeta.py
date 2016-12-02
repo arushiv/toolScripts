@@ -7,7 +7,7 @@ import csv
 import glob
 import os
 import pandas
-import pybedtools
+# import pybedtools
 
 
 def filterPval(df, threshold):
@@ -18,6 +18,12 @@ def filterPval(df, threshold):
 def absoluteBeta(df):
     df.loc[:,'absoluteBeta'] = abs(df['Slope'])
     return df
+
+def retainUniqueSnpsByPval(df):
+    outdf = df.sort(['BetaAdjustedPval'], ascending = 1)
+    outdf = outdf.drop_duplicates(subset=['SNPchr','EndSNP'], keep = 'first')
+    print outdf
+    return outdf
 
 def cutByQuantile(df, bins):
     # df['bin'] = pandas.qcut(df["absoluteBeta"], bins, labels=list(range(1, bins+1)))
@@ -52,5 +58,6 @@ Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/bineQTLByBeta.py filename -b 4 -
     df = pandas.read_csv(args.dataframe, sep='\t')
 
     newdf = absoluteBeta(filterPval(df, threshold))
-    printBySlidingBins(cutByQuantile(newdf, bins), bins, identifier)
+    retainUniqueSnpsByPval(newdf)
+    # printBySlidingBins(cutByQuantile(newdf, bins), bins, identifier)
     
