@@ -22,7 +22,6 @@ def absoluteBeta(df):
 def retainUniqueSnpsByPval(df):
     outdf = df.sort(['BetaAdjustedPval'], ascending = 1)
     outdf = outdf.drop_duplicates(subset=['SNPchr','EndSNP'], keep = 'first')
-    print outdf
     return outdf
 
 def cutByQuantile(df, bins):
@@ -57,7 +56,7 @@ Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/bineQTLByBeta.py filename -b 4 -
     
     df = pandas.read_csv(args.dataframe, sep='\t')
 
-    newdf = absoluteBeta(filterPval(df, threshold))
-    retainUniqueSnpsByPval(newdf)
-    # printBySlidingBins(cutByQuantile(newdf, bins), bins, identifier)
+    newdf = retainUniqueSnpsByPval(absoluteBeta(filterPval(df, threshold)))
+
+    printBySlidingBins(cutByQuantile(newdf, bins), bins, identifier)
     
