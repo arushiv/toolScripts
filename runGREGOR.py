@@ -104,6 +104,9 @@ class RunGregor(object):
                     
             if len(linkageDisequilibrium) != 1:
                 stringReplace(newfile, "R2THRESHOLD =","R2THRESHOLD = %s"%namelist[1])
+            elif len(linkageDisequilibrium) == 1 and linkageDisequilibrium[0] != "0.8":
+                stringReplace(newfile, "R2THRESHOLD =","R2THRESHOLD = %s"%linkageDisequilibrium[0])
+                        
             stringReplace(newfile, "OUT_DIR =","OUT_DIR = %s"%os.path.join(self.workingDirectory,"output_%s"%filename))
             stringReplace(newfile, "JOBNUMBER =","JOBNUMBER = %s"%cores)            
                          
