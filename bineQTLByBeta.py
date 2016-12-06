@@ -10,8 +10,8 @@ import pandas
 # import pybedtools
 
 
-def filterPval(df, threshold):
-    outdf = df[ (df['BetaAdjustedPval'] <= threshold) & (df['GeneType'] == "protein_coding") ]
+def filterSnps(df, threshold):
+    outdf = df[ (df['BetaAdjustedPval'] <= threshold) & (df['GeneType'] == "protein_coding") & (df['MAF'] > 0.1)]
     return  outdf
 
 
@@ -20,7 +20,7 @@ def absoluteBeta(df):
     return df
 
 def retainUniqueSnpsByPval(df):
-    outdf = df.sort(['BetaAdjustedPval'], ascending = 1)
+    outdf = df.sort_values(by=['BetaAdjustedPval'], ascending = 1)
     outdf = outdf.drop_duplicates(subset=['SNPchr','EndSNP'], keep = 'first')
     return outdf
 
@@ -42,7 +42,7 @@ def printBySlidingBins(df, bins, identifier):
         
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="""Bin eQTLs by value of slope or beta using a sliding window. Eg. If supplied bin parameter is 4, 7 (2*4 - 1) bins with sliding window equivalent to 8 bins will be created.)
+    parser = argparse.ArgumentParser(description="""Bin eQTLs by value of slope or beta using a sliding window. Script FILTERS FOR PVAL<=0.01; MAF>0.1; GeneType="protein_coding". Eg. If supplied bin parameter is 4, 7 (2*4 - 1) bins with sliding window equivalent to 8 bins will be created.)
 Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/bineQTLByBeta.py filename -b 4 -o folder/eqtl""")
     parser.add_argument('dataframe', type=str, help="""Tab separated dataframe, with header""")
     parser.add_argument('-b', '--bins', type=int, help="""Number of bins""")
@@ -56,7 +56,7 @@ Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/bineQTLByBeta.py filename -b 4 -
     
     df = pandas.read_csv(args.dataframe, sep='\t')
 
-    newdf = retainUniqueSnpsByPval(absoluteBeta(filterPval(df, threshold)))
+    newdf = retainUniqueSnpsByPval(absoluteBeta(filterSnps(df, threshold)))
 
     printBySlidingBins(cutByQuantile(newdf, bins), bins, identifier)
     
