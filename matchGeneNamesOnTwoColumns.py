@@ -16,7 +16,9 @@ import pandas
 
 
 def splitByQuantile_full(file1, file2, column_1, column_2):
-    df = pandas.merge(file1, file2, how='inner', left_index = column_1, right_index = column_2)
+    colname1 = "%s_x"%column_1
+    colname2 = "%s_y"%column_2
+    df = pandas.merge(file1, file2, how='inner', left_on = column_1, right_on = column_2).drop([colname1, colname2],1)
     return df
 
 def splitByQuantile_partial(file1, file2, column_1, column_2):
