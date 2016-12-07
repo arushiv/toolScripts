@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('-c1', '--column_1', type=int, default=1, help="""The column number in the first file.""")
     parser.add_argument('-c2', '--column_2', type=int, default=1, help="""The column number in the second file.""")
     parser.add_argument('outputfile', help="""Name of the output file.""")
-    parser.add_argument('-matchType', type=str, default="partial", help="""'full' if gene name in two files match exactly. 'partial' if names in both files do not contain .x extensions. Default = 'partial'""")
+    parser.add_argument('-matchType', type=str, default="full", help="""'full' if gene name in two files match exactly. 'partial' if names in both files do not contain .x extensions. Default = 'full'""")
 
     args = parser.parse_args()
 
