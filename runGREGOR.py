@@ -1,25 +1,16 @@
 # Run GREGOR: Fix conf files, submit drmr commands, compile dataframe and plot 
 #!/usr/bin/env python
-# 
-# from __future__ import print_function
+
+
 import argparse
-import collections
-import csv
-import gzip
-import magic
-import pprint
-import re
-import operator
 import glob
-import math
 import sys
 import subprocess as sp
 import os
-import itertools
 import shutil
-import fileinput
-import fnmatch
 
+
+# To find and replace parameter values to create .conf files accroding to supplied parameters
 def stringReplace(filename, findstring, replacestring):
     with open("temp.txt", 'w') as fout:
         with open(filename, 'r') as fin:
@@ -33,15 +24,20 @@ def stringReplace(filename, findstring, replacestring):
 class RunGregor(object):
     def __init__(self, workingDirectory):
         self.workingDirectory = workingDirectory
-    
+
+# To make GREGOR output directories for each .conf file
     def makeOutputDirectories(self, snpFileDirectory, bedFileDirectory, bedFilesPerJob, linkageDisequilibrium, nameGregorRun):
         snpFileCounter = len(glob.glob1(snpFileDirectory,"*.txt"))
         ldCounter=len(linkageDisequilibrium)
         self.nameGregorRun = nameGregorRun
-        if bedFilesPerJob==1:
+        if bedFilesPerJob=="all":
             self.bedCounter=1
+        elif len(glob.glob1(bedFileDirectory,"*.bed")) % bedFilesPerJob == 0:
+            self.bedCounter=((len(glob.glob1(bedFileDirectory,"*.bed")))/bedFilesPerJob)
+            print self.bedCounter
         else:
             self.bedCounter=((len(glob.glob1(bedFileDirectory,"*.bed")))/bedFilesPerJob) + 1
+            print self.bedCounter
         numberOfGregorJobs=snpFileCounter*ldCounter*self.bedCounter
 
         self.fileList = []
@@ -65,10 +61,9 @@ class RunGregor(object):
                         os.makedirs(newpath)
                     else:
                         print "Caution: Directory already exists!!"
-    
+
+                        
     def makeIndexBedFiles(self, bedFileDirectory, bedFilesPerJob):
-        # elif bedFilesPerJob=="name":
-        #     # find number of unique names
         tempfile=self.workingDirectory + 'temp.txt'
         with open(tempfile,'w') as f:
             for bedFile in glob.glob1(bedFileDirectory,"*.bed"):
@@ -110,35 +105,35 @@ class RunGregor(object):
             stringReplace(newfile, "OUT_DIR =","OUT_DIR = %s"%os.path.join(self.workingDirectory,"output_%s"%filename))
             stringReplace(newfile, "JOBNUMBER =","JOBNUMBER = %s"%cores)            
                          
-                  
+# Make file to submit jobs in the scheduler                  
     def makeDrmrFile(self, cores, walltime):
         self.runfile = os.path.join(self.workingDirectory, 'jobs_%s.dra'%(self.nameGregorRun)) 
         with open(self.runfile, 'w') as f:
-            f.write("# drmr:job nodes=1 processors=%s processor_memory=4000 time_limit=%s\n"%(cores, walltime))
+            f.write("# drmr:job nodes=1 processors=%s processor_memory=4000 time_limit=%s\n"%(cores, walltime))  # GREGOR job resource parameters
             for filename in self.fileList:
-                f.write("GREGOR.pl --conf enrich_%s.conf\n"%filename)
-            f.write("\n# drmr:wait\n")
-            f.write("\n# drmr:job nodes=1 processors=1 processor_memory=4000 time_limit=1:00:00\n")
+                f.write("GREGOR.pl --conf enrich_%s.conf\n"%filename)                                            # Print one job command for each .conf file 
+            f.write("\n# drmr:wait\n")                                                                           # Wait till all GREGOR jobs finish running
+            f.write("\n# drmr:job nodes=1 processors=1 processor_memory=4000 time_limit=1:00:00\n")              # Resource parameters to assemble data frame
             for filename in self.fileList:
-                f.write(" python /home/arushiv/toolScripts/makeDataFrame_gregor.py output_%s/StatisticSummaryFile.txt stats_%s.dat; "%(filename, self.nameGregorRun))
+                f.write(" python /home/arushiv/toolScripts/makeDataFrame_gregor.py output_%s/StatisticSummaryFile.txt stats_%s.dat; "%(filename, self.nameGregorRun))   # Assemble dataframe from result StatisticSummaryFile.txt in each output folder. Supply path to script makeDataFrame_gregor.py here
 
     def submitDrmrJob(self):
-        # runfile = os.path.join(self.workingDirectory, runfile)
-        cmd = "drmr %s -j job"%self.runfile
+        cmd = "drmr %s -j job"%self.runfile     # Syntax to submit drmr job
         sp.call(cmd, shell=True)
     
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Run GREGOR: Fix conf files, submit drmr commands, compile dataframe and plot.')
-    parser.add_argument('snpFileDirectory', type=str, help="""The directory with SNP files where GREGOR would be run for each such file. Should be in chr:pos or rsID format; filename should not contain '_'""")
-    parser.add_argument('bedFileDirectory', type=str, help="""The directory with (unzipped) bed files""")
+    parser = argparse.ArgumentParser(description='Run GREGOR: Fix conf files, submit GREGOR jobs using drmr commands, compile one dataframe for all jobs to plot.', usage='python runGREGOR.py ./index_SnpFiles/ ./index_BedFiles -t 4:00:00 -s 6 -name chromStates -ld 0.8,0.9')
+    parser.add_argument('snpFileDirectory', type=str, help="""The directory with SNP files- each ending in .txt GREGOR job would be submitted for each SNP file. Should be in chr:pos or rsID format; IMPORTANT: filename should not contain '_'""")
+    parser.add_argument('bedFileDirectory', type=str, help="""The directory with (unzipped) bed files. Will assume GREGOR be run using ALL files in specified directory. If GRGEOR need not be run using all files, the file bedFileIndes_xyz.txt can be manually changed before submitting drmr job.""")
+    ## Provide path to sample .conf file to the 'default' variable here
     parser.add_argument('-f','--sampleConfFile', nargs='?', default='/home/arushiv/toolScripts/gregor_sampleConfFile.conf',
-                        help="""Sample .conf file where only snp file, bed file and output folder will be changed. (default: /lab/arushiv/toolScripts/gregor_sampleConfFile.conf)""")
-    parser.add_argument('-n','--bedFilesPerJob', nargs='?', default='1', help="""Number of bedfiles per GREGOR job. (default: GREGOR runs all bedfiles in one job for each SNP file)""")
-    parser.add_argument('-ld', '--linkageDisequilibrium', nargs='?', default='0.8', help="""minimum LD for proxy SNPs. Multiple LD values to be supplied comma (,) separated. (default: 0.8)""")
+                        help="""Provide path to a sample .conf file where parameters will be edited as supplied to this script. (default: /lab/arushiv/toolScripts/gregor_sampleConfFile.conf)""")
+    parser.add_argument('-n','--bedFilesPerJob', nargs='?', default='all', help="""Divide total bedfiles into separate GREGOR jobs. CAUTION: Only use if TOO many bed files make GREGOR job too long to run. For example, if enrichment has to be run for 3000 bed files and supplied -n is 300, this script will divide bed files into 10 jobs with 300 bedfiles each. (default: GREGOR runs all bedfiles in one job for each SNP file)""")
+    parser.add_argument('-ld', '--linkageDisequilibrium', nargs='?', default='0.8', help="""minimum LD r2 for proxy SNPs. Multiple LD values to be supplied comma (,) separated. (default: 0.8)""")
     parser.add_argument('-t','--walltime', nargs='?', type=str, default='12:00:00', help="""Walltime for each GREGOR job. (default: 12:00:00 [hh:mm:ss])""")
     parser.add_argument('-s','--cores', nargs='?', type=str, default='6', help="""Number of cores for each GREGOR job. (default: 6)""")
-    parser.add_argument('-d','--workingDirectory', type=str, nargs='?', default='.', help="""Directory where output directories will be stored. (default: current directory)""")
+    parser.add_argument('-d','--workingDirectory', type=str, nargs='?', default='.', help="""Directory where output directories will be created. (default: current directory)""")
     parser.add_argument('--now', action='store_const', const='now', default='wait', help="""Submit drmr job file now.""")
     parser.add_argument('-name','--nameGregorRun', type=str, nargs='?', default="", help="""Name string to be appended to conf files and output folders indicating specific gregor run. (default: "")""")
     args = parser.parse_args()
@@ -146,10 +141,11 @@ if __name__ == '__main__':
     snpFileDirectory=args.snpFileDirectory
     bedFileDirectory=args.bedFileDirectory
     sampleConfFile=args.sampleConfFile
-    if args.bedFilesPerJob != "name":
+    # bedFilesPerJob=int(args.bedFilesPerJob)
+    if args.bedFilesPerJob != "all":
         bedFilesPerJob=int(args.bedFilesPerJob)
     else:
-        bedFilesPerJob="name"
+        bedFilesPerJob="all"
     ld = (args.linkageDisequilibrium).split(',')
     walltime = args.walltime
     cores = args.cores
