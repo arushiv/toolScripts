@@ -17,24 +17,26 @@ def getLdSnps(files, gregorOutputFolder):  # from index.SNP.in.LD.Chrxx files, m
         mdf = pandas.DataFrame()
         for overlapFile in glob.glob(os.path.join(gregorOutputFolder, name, "index.snp.LD.on.chr*")):
                 # if sum(1 for line in open(overlapFile)) > 1:
-                df = pandas.read_table(overlapFile, sep='\t') 
+                df = pandas.read_table(overlapFile, sep='\t', dtype={'LD_buddy_pos': str}) 
                 mdf = mdf.append(df, ignore_index=True)
 
         return mdf
         
 
 def makeLdBedFile(df):  # From index SNP and LD buddy dataframe, make bed file with chrom start end for each snp and LD snp
-        s = df['LD_buddy_pos'].str.split('|').apply(pandas.Series, 1).stack()
+        s = df['LD_buddy_pos'].str.split("|", expand=True).apply(pandas.Series, 1).stack(dropna=True)
         s.index = s.index.droplevel(-1)
         s.name = 'pos'
         df = pandas.DataFrame(df["index_SNP"].str.split(':').tolist(), columns = ['chrom','index_SNP'])
-        return df.join(s)[['chrom','pos','pos','index_SNP']]
+        dreturn = df.join(s)[['chrom','pos','pos','index_SNP']]
+        dreturn.iloc[:,1] = dreturn.iloc[:,1].apply(int) - 1
 
+        return dreturn
 
 def determineOverlaps(df, files): # Intersect original bed file and the snp bed file with snp and LD snps
         snp_bed = pybedtools.BedTool.from_dataframe(df)
         bedfile = pybedtools.BedTool(files.rstrip())
-        output = snp_bed.intersect(bedfile).to_dataframe()
+        output = snp_bed.intersect(bedfile, wb=True).to_dataframe()
 
         return output
 
@@ -45,7 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('gregorOutputFolder', type=str, help="""GREGOR output directory.""")
     parser.add_argument('-p','--bed_path_file', type=str, help="""The bed path file used for running GREGOR.""")
     parser.add_argument('-f','--feature', type=str, help="""Only fetch overlapping SNPs for a specific bed file paths. Paths supplied as comma separated strings""")
-    parser.add_argument('outputfile', help ="""Output file. Will contain these new columns: chrom   pos index_SNP filename""")
+    parser.add_argument('outputfile', help ="""Output file. Will contain these new columns: chrom_overlapSNP start_overlapSNP end_overlapSNP pos_indexSNP chrom_bedStart start_bedStart end_bedStart filename""")
     args = parser.parse_args()
 
     gregorOutputFolder = args.gregorOutputFolder
@@ -66,12 +68,16 @@ for files in bedList:
         if not df.empty:
                 print files
                 ldBedFile = makeLdBedFile(df)
-                overlappingSnps = determineOverlaps(ldBedFile, files)
-                overlappingSnps['filename'] = os.path.basename(files.rstrip())
-                outdf = outdf.append(overlappingSnps[['chrom','end','name','filename']], ignore_index=True)
+                try:
+                        overlappingSnps = determineOverlaps(ldBedFile, files)
+                except pandas.io.common.EmptyDataError:
+                        print "GREGROR reported overlap not found"     # Sanity check
+                else:
+                        overlappingSnps['filename'] = os.path.basename(files.rstrip())
+                        outdf = outdf.append(overlappingSnps, ignore_index=True)
         else:
                 continue
 
-outdf.to_csv(outputfile, sep='\t', index=False, header=["snp_chrom","snp_OverlapPos","index_snp","filename"])
+# outdf.to_csv(outputfile, sep='\t', index=False, header=["snp_chrom","snp_OverlapPos","index_snp","filename"])
 
-
+outdf.to_csv(outputfile, sep='\t', index=False, header=False)
