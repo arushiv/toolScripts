@@ -36,17 +36,11 @@ def makeLdBedFile(df):  # From index SNP and LD buddy dataframe, make bed file w
 
         return dreturn
 
-def determineOverlaps(df, files): # Intersect original bed file and the snp bed file with snp and LD snps
-        snp_bed = pybedtools.BedTool.from_dataframe(df)
-        bedfile = pybedtools.BedTool(files.rstrip())
-        output = snp_bed.intersect(bedfile, wb=True).to_dataframe()
-
-        return output
 
     
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='From enrichment in features GREGOR output, fetch all tag + LD SNP overlaps for a given bed file. Working directory to be the one which contains bed_path_file if it is provided in an argument', usage='~/myEnv/bin/python gregorFindAllOverlappingSnps.py <gregor output folder> <output file> -f <comma separated paths to bed files to check overlaps in>')
+    parser = argparse.ArgumentParser(description='From enrichment in features GREGOR output, retrieve LD buddies of index_SNPs that overlap. Working directory to be the one which contains bed_path_file if it is provided in an argument', usage='python gregorFindAllLdSnps.py output_T2D output.txt -p bedfile.txt')
     parser.add_argument('gregorOutputFolder', type=str, help="""GREGOR output directory.""")
     parser.add_argument('-p','--bed_path_file', type=str, help="""The bed path file used for running GREGOR.""")
     parser.add_argument('-f','--feature', type=str, help="""Only fetch overlapping SNPs for a specific bed file paths. Paths supplied as comma separated strings""")
@@ -72,16 +66,5 @@ for files in bedList:
                 print files
                 ldBedFile = makeLdBedFile(df)
                 outdf = outdf.append(ldBedFile, ignore_index=True)
-        #         try:
-        #                 overlappingSnps = determineOverlaps(ldBedFile, files)
-        #         except pandas.io.common.EmptyDataError:
-        #                 print "GREGROR reported overlap not found"
-        #         else:
-        #                 overlappingSnps['filename'] = os.path.basename(files.rstrip())
-        #                 outdf = outdf.append(overlappingSnps, ignore_index=True)
-        # else:
-        #         continue
-
-# outdf.to_csv(outputfile, sep='\t', index=False, header=["snp_chrom","snp_OverlapPos","index_snp","filename"])
 
 outdf.to_csv(outputfile, sep='\t', index=False, header=False)
