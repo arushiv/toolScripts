@@ -1,6 +1,6 @@
 # Script function:
 # 1. For a given matrix of say, RPKM values for different GTEx samples, calculate mean for samples of each tissue. Samples for each tissue specified in another file
-
+# 2. Using the mean RPKM matrix, compute ESI for each tissue
 
 #!/usr/bin/env python
 import argparse
