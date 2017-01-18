@@ -10,7 +10,7 @@ import math
 
 def calculateMean(datafile, samplefile):
         sampledf = samplefile.groupby('tissue')['sample'].apply(list)
-        sampledf = sampledf[sampledf.apply(lambda x: len(x)) > 100]    # Take those tissues that have more than 100 samples
+        sampledf = sampledf[sampledf.apply(lambda x: len(x)) > 25]    # Take those tissues that have more than 25 samples
         
         inputdf = pandas.concat(sampledf.apply(lambda x: chunk.loc[:,x].mean(axis=1)).transpose() for chunk in datafile)
 
@@ -26,6 +26,9 @@ def entropy_function(x):
     y = -x * log_with_nan(x, 2)
     return y
 
+def filterProteinCoding(d, dCoding):
+        filterList = dCoding[dCoding.iloc[:,1]=="protein_coding"].iloc[:,0].tolist()
+        return d.ix[filterList]
 
 def calculate_ESI(d):
         d_relative_rpkm = d.div(d.sum(axis=1), axis=0)  ## Relative RPKM = x(g,t)/sum(x(g,t))
@@ -43,15 +46,19 @@ if __name__ == '__main__':
     parser.add_argument('datafile', help="""Input Matrix. Tab separated, with header specifying sample ID. First two columns taken as 'gene name' and 'description'. Rest columns are to be sample IDs. Designed to handle large GTEx data frames, this file is read in chunks of 5000 lines""")
     parser.add_argument('samplefile', help="""Tab separated file with 2 columns with headers: 'tissue' 'sample', specifying sample IDs corresponding to each tissue type.""")
     parser.add_argument('outputfile', help ="""Output file.""")
+    parser.add_argument('-f', '--geneFilterList', default = 'NoFileSupplied', help = """File with gene ID as first column and gene type as second column. No header. will filter for genes with type = "protein_coding" before calculating ESI""")
     args = parser.parse_args()
 
     datafile = pandas.read_csv(args.datafile, sep='\t', index_col=[0,1], comment='#', header=1, low_memory=False, chunksize = 5000, iterator=True)
     samplefile = pandas.read_csv(args.samplefile, sep='\t')
     outputfile = args.outputfile
-
     # Calculate Mean for each tissue given the sample names
     inputdf = calculateMean(datafile, samplefile)
 
+    if args.geneFilterList != "NoFileSupplied":
+            dCoding = pandas.read_csv(args.geneFilterList, sep='\t', header=None)
+            inputdf = filterProteinCoding(inputdf, dCoding)
+        
     # Calculate ESI
     d_esi = calculate_ESI(inputdf)
     d_esi.to_csv(outputfile, sep='\t', na_rep="NA")
