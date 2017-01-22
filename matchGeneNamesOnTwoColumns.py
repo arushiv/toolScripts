@@ -56,5 +56,5 @@ if __name__ == '__main__':
         df = splitByQuantile_partial(file1, file2, column_1, column_2)
     elif matchType == "full":
         df = splitByQuantile_full(file1, file2, column_1, column_2)
-
+    print "Match Type was %s"%matchType
     writeToFile(df, outputfile)
