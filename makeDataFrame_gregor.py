@@ -1,6 +1,6 @@
 # Run GREGOR: Fix conf files, submit drmr commands, compile dataframe and plot 
 #!/usr/bin/env python
-1;2c
+
 
 import argparse
 import pandas
