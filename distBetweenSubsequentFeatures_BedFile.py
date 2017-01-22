@@ -33,7 +33,7 @@ Usage:  python ~arushiv/toolScripts distBetweenSubsequentFeatures_BedFile.py a.b
     else:                         # Return full dataframe:
         bedfile.loc[:,'Distances'] = bedfile.groupby('chrom').apply(lambda x: x['start'].shift(-1) - x['end']).apply(lambda x: replaceNegatives(x)).reset_index().loc[:,0]
         # bedfile = bedfile.dropna()
-        bedfile.loc[:,'Distances'] = bedfile.loc[:,'diff'].astype(int, raise_on_error=False)
+        bedfile.loc[:,'Distances'] = bedfile.loc[:,'Distances'].astype(int, raise_on_error=False)
         bedfile.to_csv(args.outputfile, index=False, sep='\t', na_rep="na", header=False)
     
     
