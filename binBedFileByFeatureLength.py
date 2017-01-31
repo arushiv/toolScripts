@@ -4,7 +4,6 @@ import csv
 import glob
 import os
 import pandas
-import ggplot as gp  
 import pybedtools as pb
 
 def printFunc(df, outputFile):
