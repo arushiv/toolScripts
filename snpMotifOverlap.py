@@ -34,7 +34,7 @@ def calculate_overlap_position_forward_logo(a,b,c,d):
         return c - a + 1
 
 def calculate_motif_probabilites(x,y,z):
-    with open("/home/porchard/mats/" + x + ".meme") as motif_file:
+    with open("/home/porchard/mats/" + x + ".meme") as motif_file:      # Path for motif pwm .meme files
         for n,line in enumerate(motif_file):
             if "probability" in line:
                 zeroth = n
@@ -51,13 +51,13 @@ def calculate_motif_probabilites(x,y,z):
 def calculate_motif_information_content(x):
     x=x.split()
     x = ",".join(x)
-    cmd = "echo %s | perl /home/scjp/src/parker/tools/informationColumnCommaDelimited.pl -f - -p" %x
+    cmd = "echo %s | perl /home/scjp/src/parker/tools/informationColumnCommaDelimited.pl -f - -p" %x     # Path for Steve's script to calculate Information content at given position
     return float((sp.check_output(cmd, shell = True)).split()[-1])*2
     
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('datfile', help="""The data file, tab delimited. Should contain at least these columns:\nsnp_chrom snp_start snp_end motif_chrom motif_start motif_end motif strand. \n Output has the following columns appended: overlap_position overlap_position_relative_to_fo\
+    parser = argparse.ArgumentParser(description='Take SNP coordinates and TF footprint coordinates along with footprint strand and motif PWM information, report the probabilites to A T G and C bases in the motif at the SNP-Motif overlap position. Also output information content at the position. Adjust path to motif pwm .meme files in the script.', usage='python snpMotifOverlap.py <datafile>' )
+    parser.add_argument('datfile', help="""The data file, tab delimited. Should contain at least these columns:\nsnp_chrom snp_start snp_end motif_chrom motif_start motif_end motif strand. \n Output has the following columns added to the input file: overlap_position overlap_position_relative_to_fo\
 rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinformation_content""")
     args = parser.parse_args()
 
@@ -74,8 +74,6 @@ rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinform
             overlap_pos = calculate_overlap_position(snp_pos,motif_start)
             overlap_pos_forwardlogo = calculate_overlap_position_forward_logo(snp_pos, motif_start, motif_end, strand)
 
-            # print overlap_pos
-            # print overlap_pos_forwardlogo
             motif_probabilities = calculate_motif_probabilites(motif, overlap_pos_forwardlogo, strand)
             # print motif_probabilities
             motif_information_content = calculate_motif_information_content(motif_probabilities)
