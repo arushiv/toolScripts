@@ -23,7 +23,7 @@ def getname(s):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="""Given two bed files, output name_file_1, length_file_1, name_file_2, length_file_2, length_of_overlap, ratio length_of_overlap/length_file_1.
+    parser = argparse.ArgumentParser(description="""Given two bed files, output name_file_1, length_file_1, name_file_2, length_file_2, length_of_overlap, ratio length_of_overlap/length_file_1. IMP: Both bed files are sorted and merged first, so no other bed file fields are considered.
 Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/overlapFracTwoBedFiles.py a.bed b.bed""")
     parser.add_argument('bedfile1', type=str, help="""bed file 1.""")
     parser.add_argument('bedfile2', type=str, help="""bed file 2.""")
@@ -32,8 +32,8 @@ Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/overlapFracTwoBedFiles.py a.bed 
 
     
     
-    bedfile1 = pybedtools.BedTool(args.bedfile1)
-    bedfile2 = pybedtools.BedTool(args.bedfile2)
+    bedfile1 = pybedtools.BedTool(args.bedfile1).sort().merge()
+    bedfile2 = pybedtools.BedTool(args.bedfile2).sort().merge()
     intersect = bedfile1.intersect(bedfile2)
 
     lengthFile1 = lengthOfBedFile(bedfile1)

@@ -7,7 +7,7 @@ import csv
 import glob
 import os
 import pandas
-import ggplot as gp  
+
 
 
 def filterPval(df, threshold):
@@ -27,13 +27,13 @@ def cutByQuantile(df, bins):
 def printdf(df, outputFile):
     df.to_csv(outputFile, sep='\t', index=False)
 
-def plotDensity(df):
-    p = gp.ggplot(df, gp.aes(x='absoluteBeta', fill='bin')) +\
-    gp.geom_density() +\
-    scale_x_log10() +\
-    gp.theme_bw()
+# def plotDensity(df):
+#     p = gp.ggplot(df, gp.aes(x='absoluteBeta', fill='bin')) +\
+#     gp.geom_density() +\
+#     scale_x_log10() +\
+#     gp.theme_bw()
 
-    p.save("BetaByMaf.pdf")
+#     p.save("BetaByMaf.pdf")
 
 
 
@@ -56,5 +56,5 @@ Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/binSimplyOnGivenColumn.py filena
 
     newdf = cutByQuantile(absoluteBeta(filterPval(df, threshold)), bins)
     printdf(newdf, outputFile)
-    # plotDensity(newdf)
+
 

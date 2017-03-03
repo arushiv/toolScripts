@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('-s','--inputString', type=str, default='*.txt', help="""Files which should be parsed. (default: *.txt)""")
     parser.add_argument('-d','--resultDir', type=str, default='.', help="""Directory where result files reside. (default: current Directory)""")
     parser.add_argument('runs', type=int, help="""Provide how many runs was GSC run for.""")
+    parser.add_argument('outputfile', type=str, help="""Output file name.""")
     args = parser.parse_args()
 
     path = r'.'                     # use your path
@@ -43,7 +44,7 @@ if __name__ == '__main__':
 
     d.loc[:,'cell'], d.loc[:,'annotation'], d.loc[:,'feature'], d.loc[:,'runParam'] = d.loc[:,'feature'].str.split('.').str
 
-    d.to_csv("results.dat", sep="\t", index=False, na_rep="NA")
+    d.to_csv(args.outputfile, sep="\t", index=False, na_rep="NA")
 
 
 

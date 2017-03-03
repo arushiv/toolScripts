@@ -10,14 +10,15 @@ def printFunc(df, outputFile):
         # name = "%s.%s.bed" %(outputFile, df.loc[0]['bin'] + 1)
         # df.loc[:,['chrom','start','end']].to_csv(name, sep="\t", index=False, header=False)
         df.to_csv(outputFile, sep='\t', index=False, header=False)
+
 def func(x, bins):
         if x > bins:
                 return x-1
         else:
                 return x
 
-def cutByLength(bedfile, bins):
-    bedfile[bedfile.groupby(['chrom','start','end'])['score'].transform(max) == bedfile['score']]    # For features with same coordinates, filter for one with max score
+def cutByLength(inputbedfile, bins):
+    bedfile = inputbedfile[inputbedfile.groupby(['chrom','start','end'])['score'].transform(max) == inputbedfile['score']]    # For features with same coordinates, filter for one with max score
     bedfile.loc[:,'lengthFeature'] = bedfile.loc[:,'end'] - bedfile.loc[:,'start']                   # Calculate length of feature
     bedfile.sort_values(by='lengthFeature', inplace=True)                                            # Sort by length
     estimate = bedfile['lengthFeature'].sum()/bins                        # Approx. size of each bin
@@ -44,6 +45,6 @@ if __name__ == '__main__':
     bins = args.bins
     outputFile = args.outputFile
     
-    bedfile = pb.BedTool(args.bedfile).sort().to_dataframe()
+    inputbedfile = pb.BedTool(args.bedfile).sort().to_dataframe()
 
-    printFunc(cutByLength(bedfile, bins), outputFile)
+    printFunc(cutByLength(inputbedfile, bins), outputFile)

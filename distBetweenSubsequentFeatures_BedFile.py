@@ -21,19 +21,21 @@ Usage:  python ~arushiv/toolScripts distBetweenSubsequentFeatures_BedFile.py a.b
     parser.add_argument('bedfile', type=str, help="""bed file.""")
     parser.add_argument('outputfile', type=str, help="""Output file name.""")
     parser.add_argument('--full', action='store_const', const='full', help="""Output original bed file with an additional column at the end. Last feature of each chromosome is retained with 'NA' in the appended column. IF this option not specified, the output file will only contain 1 column with Distances, the last feature for each chromosome with NA in Distances will be removed.""")
+    parser.add_argument('-n', '--colname', type=str, default='chrom', help="""Speficfy which feature of bed file within which the subsequent features should bed considered. Default = 'chrom'. Example, specify 'name' to restrict calculation between features with same name.""")
     
     args = parser.parse_args()
-     
+    colname = args.colname
+    
     bedfile = pybedtools.BedTool(args.bedfile).sort().to_dataframe()
 
     if args.full != "full":       # Return only length column
-        Distances = bedfile.groupby('chrom').apply(lambda x: x['start'].shift(-1) - x['end']).apply(lambda x: replaceNegatives(x)).dropna().astype(int)
+        Distances = bedfile.groupby(colname).apply(lambda x: x['start'].shift(-1) - x['end']).apply(lambda x: replaceNegatives(x)).dropna().astype(int)
         Distances.to_csv(args.outputfile, index=False)
 
     else:                         # Return full dataframe:
-        bedfile.loc[:,'Distances'] = bedfile.groupby('chrom').apply(lambda x: x['start'].shift(-1) - x['end']).apply(lambda x: replaceNegatives(x)).reset_index().loc[:,0]
+        bedfile.loc[:,'Distances'] = bedfile.groupby(colname).apply(lambda x: x['start'].shift(-1) - x['end']).apply(lambda x: replaceNegatives(x)).reset_index().loc[:,0]
         # bedfile = bedfile.dropna()
-        bedfile.loc[:,'Distances'] = bedfile.loc[:,'Distances'].astype(int, raise_on_error=False)
+        # bedfile.loc[:,'Distances'] = bedfile.loc[:,'Distances'].astype(int)
         bedfile.to_csv(args.outputfile, index=False, sep='\t', na_rep="na", header=False)
     
     
