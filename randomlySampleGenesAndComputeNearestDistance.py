@@ -25,7 +25,7 @@ def sampleUnique(tssFile, colNumber, numberOfGenes):
 
 def getNearestDistance(df, bedfilelist, runNumber):
     returndf = pandas.concat([fixFunc(df, bedfile) for bedfile in bedfilelist])
-    returndf.loc[:,'runNumber'] = runNumber + 1
+    returndf.loc[:,'runNumber'] = "sh" + str(runNumber + 1)
     return returndf
     # [bedfile.closest(df, d=True).to_dataframe() for bedfile in bedfilelist]
 
