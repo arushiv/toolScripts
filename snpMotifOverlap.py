@@ -53,6 +53,12 @@ def calculate_motif_information_content(x):
     x = ",".join(x)
     cmd = "echo %s | perl /home/scjp/src/parker/tools/informationColumnCommaDelimited.pl -f - -p" %x     # Path for Steve's script to calculate Information content at given position
     return float((sp.check_output(cmd, shell = True)).split()[-1])*2
+
+def checkFunc(motif, overlap_pos_forwardlogo, strand):
+    try:
+        return calculate_motif_probabilites(motif, overlap_pos_forwardlogo, strand)
+    except UnboundLocalError:         ## Places with log(0)
+        return str(0)+'\t'+str(0)+'\t'+str(0)+'\t'+str(0)
     
 if __name__ == '__main__':
 
@@ -73,8 +79,9 @@ rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinform
             strand = str(line[7])
             overlap_pos = calculate_overlap_position(snp_pos,motif_start)
             overlap_pos_forwardlogo = calculate_overlap_position_forward_logo(snp_pos, motif_start, motif_end, strand)
-
-            motif_probabilities = calculate_motif_probabilites(motif, overlap_pos_forwardlogo, strand)
+            
+            motif_probabilities = checkFunc(motif, overlap_pos_forwardlogo, strand)
+            # motif_probabilities = calculate_motif_probabilites(motif, overlap_pos_forwardlogo, strand)
             # print motif_probabilities
             motif_information_content = calculate_motif_information_content(motif_probabilities)
             # print motif_information_content.split()[-1]
