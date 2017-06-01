@@ -43,8 +43,8 @@ def printBySlidingBins(df, bins, identifier):
         
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="""Bin eQTLs by value of slope or beta using a sliding window. Script FILTERS FOR PVAL<=0.01; MAF>0.1; GeneType="protein_coding" AND ABSOLUTEBETA <=2.0. Eg. If supplied bin parameter is 4, 7 (2*4 - 1) bins with sliding window equivalent to 8 bins will be created.)
-Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/bineQTLByBeta.py filename -b 4 -o folder/eqtl""")
+    parser = argparse.ArgumentParser(description="""Bin eQTLs by value of slope or beta using a sliding window. Script FILTERS FOR PVAL<=0.01; MAF>0.1; GeneType="protein_coding" AND ABSOLUTEBETA <=2.0. Eg. If supplied bin parameter is 10, 19 (2*10 - 1) 50% overlapping decile bins will be created.
+Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/bineQTLByBeta.py filename -b 10 -o folder/eqtl""")
     parser.add_argument('dataframe', type=str, help="""Tab separated dataframe, with header""")
     parser.add_argument('-b', '--bins', type=int, help="""Number of bins""")
     parser.add_argument('-o', '--outputFileIdentifier', type=str, nargs='?', default="eqtl", help="""Output file name identifier. Eg. identifier folder/eqtl will result in files: folder/eqtl.1.dat; folder/eqtl.2.dat and so on.""")
