@@ -1,7 +1,3 @@
-# Script function:
-# 1. For a given matrix of say, RPKM values for different GTEx samples, calculate mean for samples of each tissue. Samples for each tissue specified in another file
-# 2. Using the mean RPKM matrix, compute ESI for each tissue
-
 #!/usr/bin/env python
 import argparse
 import pandas
@@ -36,10 +32,13 @@ if __name__ == '__main__':
         df  = df.append(d, ignore_index=True)
 
     df.columns = ["columns","values","feature"]
-
+    print df
     df.loc[:,"columns"] = df.loc[:,"columns"].str.replace("\t","").str.replace(" ", "_")
 
     d = df.pivot(columns = "columns", values = "values", index = "feature").reset_index()
+
+    print d
+    
     d.loc[:,'feature'].replace(inputString, "", inplace = True, regex = True)
 
     d.loc[:,'cell'], d.loc[:,'annotation'], d.loc[:,'feature'], d.loc[:,'runParam'] = d.loc[:,'feature'].str.split('.').str
