@@ -1,6 +1,3 @@
-# Script function:
-# 1. For a given matrix of say, RPKM values for different GTEx samples, calculate mean for samples of each tissue. Samples for each tissue specified in another file
-# 2. Using the mean RPKM matrix, compute ESI for each tissue
 
 #!/usr/bin/env python
 import argparse
@@ -24,12 +21,12 @@ all_files = glob.glob("*.dat.gz")     # advisable to use os.path.join as this ma
 df = pandas.DataFrame()
 
 for f in all_files:
-    d = pandas.read_csv(f, comment="#", sep="\t")
+    d = pandas.read_csv(f, comment="#", sep="\t", usecols=['observed','expected', 'stddev', 'qvalue', 'pvalue'])
     d.loc[:,'feature'] = str(f)
     df  = df.append(d, ignore_index=True)
 
     
-df = df.loc[:,['feature','observed','expected', 'stddev', 'qvalue', 'pvalue']]    
+# df = df.loc[:,['feature','observed','expected', 'stddev', 'qvalue', 'pvalue']]    
 df.loc[:,'feature'].replace(".gatres.dat.gz", "", inplace = True, regex = True)
 df.loc[:,'feature'].replace(".annotations", "", inplace = True, regex = True)
 
