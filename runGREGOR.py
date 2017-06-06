@@ -109,9 +109,9 @@ class RunGregor(object):
     def makeDrmrFile(self, cores, walltime):
         self.runfile = os.path.join(self.workingDirectory, 'jobs_%s.dra'%(self.nameGregorRun)) 
         with open(self.runfile, 'w') as f:
-            f.write("# drmr:job nodes=1 processors=%s processor_memory=4000 time_limit=%s\n"%(cores, walltime))  # GREGOR job resource parameters
+            f.write("# drmr:job nodes=1 processors=%s processor_memory=200 time_limit=%s\n"%(cores, walltime))  # GREGOR job resource parameters
             for filename in self.fileList:
-                f.write("GREGOR.pl --conf enrich_%s.conf\n"%filename)                                            # Print one job command for each .conf file 
+                f.write("ionice -c2 -n7 GREGOR.pl --conf enrich_%s.conf\n"%filename)                                            # Print one job command for each .conf file 
             f.write("\n# drmr:wait\n")                                                                           # Wait till all GREGOR jobs finish running
             f.write("\n# drmr:job nodes=1 processors=1 processor_memory=4000 time_limit=1:00:00\n")              # Resource parameters to assemble data frame
             for filename in self.fileList:
