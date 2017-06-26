@@ -65,10 +65,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Take SNP coordinates and TF footprint coordinates along with footprint strand and motif PWM information, report the probabilites to A T G and C bases in the motif at the SNP-Motif overlap position. Also output information content at the position. Adjust path to motif pwm .meme files in the script.', usage='python snpMotifOverlap.py <datafile>' )
     parser.add_argument('datfile', help="""The data file, tab delimited. Should contain at least these columns:\nsnp_chrom snp_start snp_end motif_chrom motif_start motif_end motif strand. \n Output has the following columns added to the input file: overlap_position overlap_position_relative_to_fo\
 rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinformation_content""")
+    # parser.add_argument('-o', '--outputfile', type=str, help="Output file name. Defaults to stdout.")
     args = parser.parse_args()
 
+    # outputfile = args.outputfile
 
-    
     with open_maybe_gzipped(args.datfile) as d_file:
         dat_file = csv.reader(d_file, delimiter='\t', dialect='excel-tab')
         for line in dat_file:
@@ -88,3 +89,6 @@ rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinform
             line.extend([str(overlap_pos), str(overlap_pos_forwardlogo), str(motif_probabilities), str(motif_information_content)])
             print '\t'.join(line)
 
+
+
+        
