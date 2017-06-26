@@ -42,4 +42,4 @@ if __name__ == '__main__':
     if args.keepCols is not None:
         d = d[args.keepCols]
         
-    d.to_csv(args.outputfile, sep='\t', index=False)
+    d.to_csv(args.outputfile, sep='\t', index=False, na_rep="NA")
