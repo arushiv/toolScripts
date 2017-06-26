@@ -15,26 +15,43 @@ def log_with_nan(x, y):
     except ValueError:         ## Places with log(0)
         return float('nan')
 
-path = r'.'                     # use your path
-all_files = glob.glob("*.dat.gz")     # advisable to use os.path.join as this makes concatenation OS independent
+def makeResultDf(all_files, string, split, infosplit):
+    dlist = []
+    for f in all_files:
+        d = pandas.read_csv(f, comment="#", sep="\t", usecols=['observed','expected', 'stddev', 'qvalue', 'pvalue'])
+        d.loc[:,'feature'] = os.path.basename(f).replace(string, "")
+        dlist.append(d)
+        
+    df  = pandas.concat(dlist, ignore_index=True)
+    df.loc[:,'enrichment'] = (df.loc[:,'observed'] / df.loc[:,'expected']).apply(lambda x: log_with_nan(x, 2))
 
-df = pandas.DataFrame()
-
-for f in all_files:
-    d = pandas.read_csv(f, comment="#", sep="\t", usecols=['observed','expected', 'stddev', 'qvalue', 'pvalue'])
-    d.loc[:,'feature'] = str(f)
-    df  = df.append(d, ignore_index=True)
+    # df.loc[:,'feature'].replace(".gatres.dat.gz", "", inplace = True, regex = True)
+    # df.loc[:,'feature'].replace(".annotations", "", inplace = True, regex = True)
+    if split is not None:
+        df[infosplit] = pandas.DataFrame([x for x in df.loc[:,'feature'].str.split('.')])
+        df.drop('feature', axis=1, inplace=True)
+        
+        # df.loc[:,'cell'], df.loc[:,'annotation'], df.loc[:,'feature'] = df.loc[:,'feature'].str.split('.').str
+   
+    return df
 
     
-# df = df.loc[:,['feature','observed','expected', 'stddev', 'qvalue', 'pvalue']]    
-df.loc[:,'feature'].replace(".gatres.dat.gz", "", inplace = True, regex = True)
-df.loc[:,'feature'].replace(".annotations", "", inplace = True, regex = True)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Make dataframe from GAT results.', usage='python ~arushiv/toolScripts/analyze_GATResults.py -s *.out -d outputDir/ ')
+    parser.add_argument('-s','--inputString', type=str, default='*.txt', help="""Files which should be parsed. (default: *.txt)""")
+    parser.add_argument('-d','--resultDir', type=str, default='.', help="""Directory where result files reside. (default: current Directory)""")
+    parser.add_argument('outputfile', type=str, help="""Output file name.""")
+    parser.add_argument('--split', action='store_const', const="split", default="nosplit", help="""Split the feature name by '.'. If not provided, feature column is as is.""")
+    parser.add_argument('-is', '--infosplit', nargs='+', default=['motif','cell1','cell2'], help="""Supply comma separated list of names into which the feature column should be split into. Default = ['motif','cell1','cell2']""")
+    args = parser.parse_args()
+    inputString = args.inputString
+    resultDir = args.resultDir
+    
+    all_files = glob.glob(os.path.join(resultDir, inputString))     # advisable to use os.path.join as this makes concatenation OS independent
 
-df.loc[:,'cell'], df.loc[:,'annotation'], df.loc[:,'feature'] = df.loc[:,'feature'].str.split('.').str
+    df = makeResultDf(all_files, inputString.replace("*",""), args.split, args.infosplit)
+    
+    df.to_csv(args.outputfile, sep="\t", index=False, na_rep="NA")
+# p = sns.FacetGrid(df, col="cell",  hue="annotation").map(sns.stripplot, "feature", "enrichment")
 
-df.loc[:,'enrichment'] = (df.loc[:,'observed'] / df.loc[:,'expected']).apply(lambda x: log_with_nan(x, 2))
-
-df.to_csv("results.dat", sep="\t", index=False, na_rep="NA")
-p = sns.FacetGrid(df, col="cell",  hue="annotation").map(sns.stripplot, "feature", "enrichment")
-
-p.savefig("fig.pdf")
+# p.savefig("fig.pdf")
