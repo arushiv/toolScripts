@@ -20,7 +20,7 @@ def useTabix(df, vcfFileDirectory):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='For a bed file with chrom and pos fields for SNPs, fetch rsids and output in a dataframe', usage='python getRsIds1000G.py inputfile -o outputfile')
-    parser.add_argument('inputfile', type=str, help="""The input file. Should have at least 2 colums with header SNPchr,SNPEnd; format 1 10000 for position 10000 on chr1""")
+    parser.add_argument('inputfile', type=str, help="""The input file. Should contain one colum with header 'snp' and values formatted as 'chr1:10000' """)
     parser.add_argument('-v', '--vcfFileDirectory', type=str, default = "/lab/data/genomes/human/hg19/1000GenomesDownloads/", help="""The directory with vcf files. Default = `/lab/data/genomes/human/hg19/1000GenomesDownloads/`""")
     parser.add_argument('outputfile', help="""output file name""")
 
