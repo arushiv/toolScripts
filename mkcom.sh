@@ -11,3 +11,7 @@ fi
 mkdir -p $dirname
 cp /home/arushiv/toolScripts/commands.py $dirname
 ln -s $dirname/commands.py .
+
+# git init $dirname
+# git add $dirname/commands.py
+
