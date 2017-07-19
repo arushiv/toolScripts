@@ -1,4 +1,4 @@
-# Run GAT with default parameters to calculate overlap enrichment for TFs
+
 import subprocess as sp
 import os
 import argparse
@@ -13,15 +13,26 @@ def printWait(workflowFile):
     workflowFile.write("\n# drmr:wait\n")
 
 def printInfo(workflowFile, info):
-    workflowFile.write("\n###\n %s \n###\n" % (info))
+    workflowFile.write("\n###\n # %s \n###\n" % (info))
 
 def printResources(workflowFile, nodes, cores, memory, time):
     workflowFile.write("\n# drmr:job nodes=%s processors=%s processor_memory=%s time_limit=%s\n" %(nodes, cores, memory, time))
 
 def withIonIce(x):
     return "ionice -c2 -n7 " + x
-   
-   
+
+def newmkdir(dirname):
+    try:
+        os.makedirs(dirname)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(dirname):
+            pass
+        else:
+            raise
+
+def printBash(x):
+    return x.replace('\t', '\\t')
+
 def printGatCommands(workflowFile, motifFilePath, footprintDirPath, gatOutput):
     def iterateCells(x):
     # MIN6.ARNTL_1.hg19Mapped_150ext_hmr05subsetted.Footprints.bed
@@ -49,7 +60,7 @@ def plot(workflowFile, outputfile, figfile):
     
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Workflow for generating drmr file for getting all footprint overlap information with eQTL', usage='python workflow.py ')
+    parser = argparse.ArgumentParser(description='Workflow for generating drmr file for ', usage='python commands.py ')
     parser.add_argument('-d','--workingDirectory', type=str, nargs='?', default='.', help="""Directory where output directories will be created. (default: current directory)""")
     parser.add_argument('-name','--workflowName', type=str, nargs='?', default="workflow", help="""Name string for current workflow. Will be appended to files generated (default: "workflow")""")
     parser.add_argument('--now', action='store_const', const='now', default='wait', help="""Submit drmr job file now.""")
@@ -59,6 +70,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     workingDirectory = args.workingDirectory
+    intermediateFileDir = os.path.join(workingDirectory, "intermediateFiles")
+    newmkdir(intermediateFileDir)
     workflowName = args.workflowName
     workflowFile = os.path.join(workflowName+'.dr')
 
@@ -66,14 +79,6 @@ if __name__ == '__main__':
     motifFilePath = args.motifFilePath
 
     gatOutput = os.path.join(workingDirectory, workflowName + "_gatOutputs")
-    try:
-        os.makedirs(gatOutput)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(gatOutput):
-            pass
-        else:
-            raise
-
 
     with open(workflowFile, 'w') as f:
 
@@ -85,20 +90,15 @@ if __name__ == '__main__':
 
         printInfo(f, "# Compile GAT Results")
         printResources(f, 1, 1, 4000, "10:00")
-        outputfile = os.path.join(workingDirectory, "gatResults.dat")
+        outputfile = os.path.join(intermediateFileDir, "gatResults.dat")
         printGatCommands(f, gatOutput, outputfile)
         printWait()
         
         printInfo(f, "# Plot")
         printResources(f, 1, 1, 4000, "10:00")
-        figfile = os.path.join(workingDirectory, "fig.2wayGat.pdf")
+        figfile = os.path.join(intermediateFileDir, "fig.2wayGat.pdf")
         printGatCommands(f, outputfile, figfile)
 
 
     if args.now != "wait":
         sp.call("drmr %s" % workflowFile, shell=True)
-# Get ChIP seq sam files
-
-# pysam pileup needs bam file?
-# sam to bam, sorted and indexed
-
