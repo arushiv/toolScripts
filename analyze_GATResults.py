@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def log_with_nan(x, y):
+    if np.isinf(x):
+        return float('nan')
     try:
         return math.log(x, y)
     except ValueError:         ## Places with log(0)
@@ -25,13 +27,9 @@ def makeResultDf(all_files, string, split, infosplit):
     df  = pandas.concat(dlist, ignore_index=True)
     df.loc[:,'enrichment'] = (df.loc[:,'observed'] / df.loc[:,'expected']).apply(lambda x: log_with_nan(x, 2))
 
-    # df.loc[:,'feature'].replace(".gatres.dat.gz", "", inplace = True, regex = True)
-    # df.loc[:,'feature'].replace(".annotations", "", inplace = True, regex = True)
     if split is not None:
         df[infosplit] = pandas.DataFrame([x for x in df.loc[:,'feature'].str.split('.')])
         df.drop('feature', axis=1, inplace=True)
-        
-        # df.loc[:,'cell'], df.loc[:,'annotation'], df.loc[:,'feature'] = df.loc[:,'feature'].str.split('.').str
    
     return df
 
@@ -47,11 +45,12 @@ if __name__ == '__main__':
     inputString = args.inputString
     resultDir = args.resultDir
     
-    all_files = glob.glob(os.path.join(resultDir, inputString))     # advisable to use os.path.join as this makes concatenation OS independent
+    all_files = glob.glob(os.path.join(resultDir, inputString))     
 
     df = makeResultDf(all_files, inputString.replace("*",""), args.split, args.infosplit)
     
     df.to_csv(args.outputfile, sep="\t", index=False, na_rep="NA")
-# p = sns.FacetGrid(df, col="cell",  hue="annotation").map(sns.stripplot, "feature", "enrichment")
 
+
+# p = sns.FacetGrid(df, col="cell",  hue="annotation").map(sns.stripplot, "feature", "enrichment")
 # p.savefig("fig.pdf")
