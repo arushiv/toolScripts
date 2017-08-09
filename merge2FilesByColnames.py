@@ -31,8 +31,8 @@ if __name__ == '__main__':
     col1 = args.file1colnames
     col2 = args.file2colnames
     mergetype=args.mergetype
-    print d1.columns
-    print d2.columns
+    print(d1.columns)
+    print(d2.columns)
 
     if args.mergeon is not None:
         d = pandas.merge(d1, d2, how=mergetype, on=args.mergeon)
