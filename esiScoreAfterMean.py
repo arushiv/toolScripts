@@ -1,7 +1,3 @@
-# Script function:
-# 1. For a given matrix of say, RPKM values for different GTEx samples, calculate mean for samples of each tissue. Samples for each tissue specified in another file
-# 2. Using the mean RPKM matrix, compute ESI for each tissue
-
 #!/usr/bin/env python
 import argparse
 import pandas
@@ -10,55 +6,96 @@ import math
 
 def calculateMean(datafile, samplefile):
         sampledf = samplefile.groupby('tissue')['sample'].apply(list)
-        sampledf = sampledf[sampledf.apply(lambda x: len(x)) > 25]    # Take those tissues that have more than 25 samples
-        
-        inputdf = pandas.concat(sampledf.apply(lambda x: chunk.loc[:,x].mean(axis=1)).transpose() for chunk in datafile)
 
+        """Take those tissues that have more than 25 samples"""
+
+        sampledf = sampledf[sampledf.apply(lambda x: len(x)) > 25]   
+        inputdf = pandas.concat(sampledf.apply(lambda x: chunk.loc[:,x].mean(axis=1)).transpose() for chunk in datafile)
+        
         return inputdf
 
 def log_with_nan(x, y):
-    try:
-        return math.log(x, y)
-    except ValueError:         ## Places with log(0)
-        return float('nan')
+        try:
+                return math.log(x, y)
+        except ValueError:
+                """Places with log(0)"""
+                return float('nan')
 
 def entropy_function(x):
-    y = -x * log_with_nan(x, 2)
-    return y
+        y = -x * log_with_nan(x, 2)
+        return y
 
-def filterProteinCoding(d, dCoding):
-        filterList = dCoding[dCoding.iloc[:,1]=="protein_coding"].iloc[:,0].tolist()
-        return d.ix[filterList]
+def filterProteinCoding(d, geneFilterList, filterName):
+        dCoding = pandas.read_csv(geneFilterList, sep='\t')
+        dCoding = dCoding[dCoding['type'] == filterName]
+        print(dCoding)
+
+        """
+        Rename Gene ID to remove '.' to match with gene list
+        """
+        d.reset_index(inplace=True)
+        d.loc[:,'Name'] = d['Name'].map(lambda x: x.split(".")[0])
+        print(d)
+        outdf = pandas.merge(d, dCoding[['Name']], how="inner", on=['Name'])
+        outdf.set_index(['Name','Description'], inplace=True)
+        print(outdf)
+        return outdf
 
 def calculate_ESI(d):
-        d_relative_rpkm = d.div(d.sum(axis=1), axis=0)  ## Relative RPKM = x(g,t)/sum(x(g,t))
-        d.loc[:,'entropy'] = d_relative_rpkm.applymap(lambda x: entropy_function(x)).sum(axis=1)    ## Entropy = - sum(relativeRPKM(g,t) * log2(relative RPKM(g,t)))
-        d_qvalues = d_relative_rpkm.applymap(lambda x: log_with_nan(x, 2)).apply(lambda x: d.loc[:,'entropy'] - x, axis=0)   ## Q(g,t) = Entropy(g) - log2(relativeRPKM(g,t))
-        d_max_q = d_qvalues.max(axis=0).to_frame().transpose()        ## maxQ = max(Q(t))
+        """
+        Relative RPKM = x(g,t)/sum(x(g,t))
+        Entropy = - sum(relativeRPKM(g,t) * log2(relative RPKM(g,t)))
+        Q(g,t) = Entropy(g) - log2(relativeRPKM(g,t))
+        maxQ = max(Q(t))
+        """
+        d_relative_rpkm = d.div(d.sum(axis=1), axis=0)  
+        d.loc[:,'entropy'] = d_relative_rpkm.applymap(lambda x: entropy_function(x)).sum(axis=1)   
+        d_qvalues = d_relative_rpkm.applymap(lambda x: log_with_nan(x, 2)).apply(lambda x: d.loc[:,'entropy'] - x, axis=0)  
+        d_max_q = d_qvalues.max(axis=0).to_frame().transpose()       
 
         d_esi = d_qvalues.apply(lambda x: 1 - x/d_max_q.squeeze(), axis=1)
         return d_esi
 
-    
-if __name__ == '__main__':
+def getOpts():
+        parser = argparse.ArgumentParser(description='For a given matrix of say, RPKM values for different GTEx samples, calculate mean RPKM for each tissue. Sample IDs corresponding each tissue are specified in another file. Option to skip calculating mean if sample ID file is not provided, matrix file headers are then taken to be tissue types. Then calculate ESI for each tissue', usage='python esiScoreAfterMean.py datafile.txt -s samplefile.txt output.txt')
+        parser.add_argument('datafile', help="""Input Matrix. Tab separated, with header specifying sample IDs or tissues. First two columns taken as 'Name' and 'Description'.""")
+        parser.add_argument('-s', '--samplefile', help="""If mean for each tissue has to be calculated, supply a tab separated file with 2 columns with headers: 'tissue' 'sample', specifying sample IDs corresponding to each tissue type.""")
+        parser.add_argument('outputfile', help ="""Output file.""")
+        parser.add_argument('-f', '--geneFilterList', help = """File with gene 'Name' as first column and gene 'type' as second column. No header. will filter for genes with type = "protein_coding" before calculating ESI""")
+        parser.add_argument('-t', '--geneFilterType', help = """value of the 'type' column on the geneFilterList on which genes should be filter. Example, give 'protein_coding' to select these genes from the provided list before calculating ESI""")
 
-    parser = argparse.ArgumentParser(description='For a given matrix of say, RPKM values for different GTEx samples, calculate mean RPKM for each tissue. Sample IDs corresponding each tissue are specified in another file. Then calculate ESI for each tissue', usage='python esiScoreAfterMean.py datafile.txt samplefile.txt output.txt')
-    parser.add_argument('datafile', help="""Input Matrix. Tab separated, with header specifying sample ID. First two columns taken as 'gene name' and 'description'. Rest columns are to be sample IDs. Designed to handle large GTEx data frames, this file is read in chunks of 5000 lines""")
-    parser.add_argument('samplefile', help="""Tab separated file with 2 columns with headers: 'tissue' 'sample', specifying sample IDs corresponding to each tissue type.""")
-    parser.add_argument('outputfile', help ="""Output file.""")
-    parser.add_argument('-f', '--geneFilterList', default = 'NoFileSupplied', help = """File with gene ID as first column and gene type as second column. No header. will filter for genes with type = "protein_coding" before calculating ESI""")
-    args = parser.parse_args()
-
-    datafile = pandas.read_csv(args.datafile, sep='\t', index_col=[0,1], comment='#', header=1, low_memory=False, chunksize = 5000, iterator=True)
-    samplefile = pandas.read_csv(args.samplefile, sep='\t')
-    outputfile = args.outputfile
-    # Calculate Mean for each tissue given the sample names
-    inputdf = calculateMean(datafile, samplefile)
-
-    if args.geneFilterList != "NoFileSupplied":
-            dCoding = pandas.read_csv(args.geneFilterList, sep='\t', header=None)
-            inputdf = filterProteinCoding(inputdf, dCoding)
+        return parser
         
-    # Calculate ESI
-    d_esi = calculate_ESI(inputdf)
-    d_esi.to_csv(outputfile, sep='\t', na_rep="NA")
+if __name__ == '__main__':
+        parser = getOpts()
+        args = parser.parse_args()
+        
+        outputfile = args.outputfile
+        
+        """
+        If a sample vs tissue file is provided, calculate Mean RPKM for each tissue and then proceed
+        """
+        
+        if args.samplefile is not None:
+                """
+                Read input matrix - expected to be very large, so is read in chunks. Note first line is skipped while reading header because of the specific GTEx input file formatting.
+                Firt two columns - gene name and description are read as index. 
+                """
+                datafile = pandas.read_csv(args.datafile, sep='\t', index_col=[0,1], comment='#', header=1, low_memory=False, chunksize = 10000, iterator=True)
+                samplefile = pandas.read_csv(args.samplefile, sep='\t')
+                inputdf = calculateMean(datafile, samplefile)
+
+        else:
+                """
+                If using the GTEx V6p median gene RPKM per tissue file, no need to calculate mean
+                """
+                inputdf = pandas.read_csv(args.datafile, sep='\t', index_col=[0,1], comment='#', header=1)
+
+        if args.geneFilterList is not None:
+                inputdf = filterProteinCoding(inputdf, args.geneFilterList, args.geneFilterType)
+
+        """
+        Calculate ESI
+        """
+        d_esi = calculate_ESI(inputdf)
+        d_esi.to_csv(outputfile, sep='\t', na_rep="NA")
