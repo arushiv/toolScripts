@@ -28,18 +28,18 @@ def entropy_function(x):
 def filterProteinCoding(d, geneFilterList, filterName):
         dCoding = pandas.read_csv(geneFilterList, sep='\t')
         dCoding = dCoding[dCoding['type'] == filterName]
-        print(dCoding)
 
         """
         Rename Gene ID to remove '.' to match with gene list
         """
         d.reset_index(inplace=True)
         d.loc[:,'Name'] = d['Name'].map(lambda x: x.split(".")[0])
-        print(d)
         outdf = pandas.merge(d, dCoding[['Name']], how="inner", on=['Name'])
         outdf.set_index(['Name','Description'], inplace=True)
-        print(outdf)
         return outdf
+
+def filterGeneExpression(d, expressionFilter, expressionFilterTissue):
+        return d[d[expressionFilterTissue] >= expressionFilter]
 
 def calculate_ESI(d):
         """
@@ -50,9 +50,9 @@ def calculate_ESI(d):
         """
         d_relative_rpkm = d.div(d.sum(axis=1), axis=0)  
         d.loc[:,'entropy'] = d_relative_rpkm.applymap(lambda x: entropy_function(x)).sum(axis=1)   
-        d_qvalues = d_relative_rpkm.applymap(lambda x: log_with_nan(x, 2)).apply(lambda x: d.loc[:,'entropy'] - x, axis=0)  
+        d_qvalues = d_relative_rpkm.applymap(lambda x: log_with_nan(x, 2)).apply(lambda x: d.loc[:,'entropy'] - x, axis=0)
+        # print(d_qvalues.loc[d_qvalues[['Cells - EBV-transformed lymphocytes']].idxmax(), 'Cells - EBV-transformed lymphocytes'])
         d_max_q = d_qvalues.max(axis=0).to_frame().transpose()       
-
         d_esi = d_qvalues.apply(lambda x: 1 - x/d_max_q.squeeze(), axis=1)
         return d_esi
 
@@ -63,6 +63,8 @@ def getOpts():
         parser.add_argument('outputfile', help ="""Output file.""")
         parser.add_argument('-f', '--geneFilterList', help = """File with gene 'Name' as first column and gene 'type' as second column. No header. will filter for genes with type = "protein_coding" before calculating ESI""")
         parser.add_argument('-t', '--geneFilterType', help = """value of the 'type' column on the geneFilterList on which genes should be filter. Example, give 'protein_coding' to select these genes from the provided list before calculating ESI""")
+        parser.add_argument('-e', '--expressionFilter', type=float, help = """Min expression for value to filter for. """)
+        parser.add_argument('-et', '--expressionFilterTissue', type=str, help = """Tissue name for which genes have to be filtered based on gene expression in the 'expressionFilter' flag""")
 
         return parser
         
@@ -93,6 +95,11 @@ if __name__ == '__main__':
 
         if args.geneFilterList is not None:
                 inputdf = filterProteinCoding(inputdf, args.geneFilterList, args.geneFilterType)
+        print(len(inputdf.index))
+
+        if (args.expressionFilter is not None) and (args.expressionFilterTissue is not None):
+                inputdf = filterGeneExpression(inputdf, args.expressionFilter, args.expressionFilterTissue)
+        print(len(inputdf.index))
 
         """
         Calculate ESI
