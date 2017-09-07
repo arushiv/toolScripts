@@ -6,7 +6,6 @@ import math
 import glob
 import os
 import seaborn as sns
-import matplotlib.pyplot as plt
 import numpy as np
 
 def log_with_nan(x, y):
@@ -20,13 +19,12 @@ def log_with_nan(x, y):
 def makeResultDf(all_files, string, split, infosplit):
     dlist = []
     for f in all_files:
-        d = pandas.read_csv(f, comment="#", sep="\t", usecols=['observed','expected', 'stddev', 'qvalue', 'pvalue'])
+        d = pandas.read_csv(f, comment="#", sep="\t", usecols=['observed','expected', 'fold', 'l2fold', 'stddev', 'qvalue', 'pvalue'])
         d.loc[:,'feature'] = os.path.basename(f).replace(string, "")
         dlist.append(d)
         
     df  = pandas.concat(dlist, ignore_index=True)
-    df.loc[:,'enrichment'] = (df.loc[:,'observed'] / df.loc[:,'expected']).apply(lambda x: log_with_nan(x, 2))
-
+    
     if split is not None:
         df[infosplit] = pandas.DataFrame([x for x in df.loc[:,'feature'].str.split('.')])
         df.drop('feature', axis=1, inplace=True)
@@ -40,7 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('-d','--resultDir', type=str, default='.', help="""Directory where result files reside. (default: current Directory)""")
     parser.add_argument('outputfile', type=str, help="""Output file name.""")
     parser.add_argument('--split', action='store_const', const="split", default="nosplit", help="""Split the feature name by '.'. If not provided, feature column is as is.""")
-    parser.add_argument('-is', '--infosplit', nargs='+', default=['motif','cell1','cell2'], help="""Supply comma separated list of names into which the feature column should be split into. Default = ['motif','cell1','cell2']""")
+    parser.add_argument('-is', '--infosplit', nargs='+', default=['motif','cell1','cell2'], help="""Supply header names into which the feature column should be split into (space separated). Default = ['motif','cell1','cell2']""")
     args = parser.parse_args()
     inputString = args.inputString
     resultDir = args.resultDir
