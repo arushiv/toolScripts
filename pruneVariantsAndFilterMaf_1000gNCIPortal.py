@@ -69,7 +69,7 @@ def mergeResults(resultFileDir, d, outputfile):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Script to prune SNPs based on LD in specific populations using 1000g phase 3 data using the NCI portal https://analysistools.nci.nih.gov/LDlink/?tab=snpclip. Can also provide a MAF threshold to filter variants. Should supply a sorted list of variants by p-value or other applicable criteria to retain SNPs', usage='python pruneVariantsAndFilterMaf_1000gNCIPortal.py <rsIDlist> -p CEU -r2 0.8 -maf 0.2 <outputfilename> ')
-    parser.add_argument('variantfile', type=argparse.FileType('r'), help="""file with rsIDs to search proxies of. Also needs chrom information. Tab separated. Header name of the rsID and chrom column should be 'snp', 'chrom'. Pre-sort this by pre-value etc, variants further down in the list that are in high LD with top variants will be removed""")
+    parser.add_argument('variantfile', help="""file with rsIDs to search proxies of. Also needs chrom information. Tab separated. Header name of the rsID and chrom column should be 'snp', 'chrom'. Pre-sort this by p-value etc, variants further down in the list that are in high LD with top variants will be removed""")
     parser.add_argument('-hv', '--variantfileHeader', nargs='+', help="""If variant file does not contain header, supply space separated list here. Header name of the rsID and chrom column should be 'snp', 'chrom'""")
     parser.add_argument('-p', '--population', default='CEU', help="""Population to search proxies in. Options are: \n
 (AFR) African:[[
