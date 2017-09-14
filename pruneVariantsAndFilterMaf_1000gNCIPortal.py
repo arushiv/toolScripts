@@ -105,8 +105,8 @@ if __name__ == '__main__':
     (ITU) Indian Telugu from the UK \n ]]
     provide sub or superpopulation code(s) WITHOUT parantheses.""" )
     parser.add_argument('-dir', '--resultFileDir', default='results_ldPrune', help="""Directory that will contain all LD prune results.""")
-    parser.add_argument('-r2', '--r2Threshold', type=float, default=0.8, help="""Retain variants with this r2 or lower and paste into the output file""")
-    parser.add_argument('-maf', '--mafThreshold', type=float, default=0.0, help="""Retain variants with this r2 or lower and paste into the output file""")
+    parser.add_argument('-r2', '--r2Threshold', type=float, default=0.8, help="""Retain variants with this r2 or lower and paste into the output file. Default = 0.8""")
+    parser.add_argument('-maf', '--mafThreshold', type=float, default=0.0, help="""Retain variants with this r2 or lower and paste into the output file. Default = 0.0""")
     parser.add_argument('-s', '--sortName', type=str, help="""Give column name to sort rsIDs by before pruning.""")
 
     parser.add_argument('outputfile', help="""name of the outputfile""")
