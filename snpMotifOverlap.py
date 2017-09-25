@@ -34,7 +34,8 @@ def calculate_overlap_position_forward_logo(a,b,c,d):
         return c - a + 1
 
 def calculate_motif_probabilites(x,y,z):
-    with open("/home/porchard/mats/" + x + ".meme") as motif_file:      # Path for motif pwm .meme files
+    filename = "/home/porchard/mats/{motif}.meme".format(motif=x)
+    with open(filename) as motif_file:      # Path for motif pwm .meme files
         for n,line in enumerate(motif_file):
             if "probability" in line:
                 zeroth = n
@@ -70,7 +71,8 @@ rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinform
 
     # outputfile = args.outputfile
 
-    with open_maybe_gzipped(args.datfile) as d_file:
+    # with open_maybe_gzipped(args.datfile) as d_file:
+    with open(args.datfile) as d_file:
         dat_file = csv.reader(d_file, delimiter='\t', dialect='excel-tab')
         for line in dat_file:
             snp_pos = int(line[2])
@@ -87,7 +89,7 @@ rward_logo motif_prob_A motif_prob_C    motif_prob_G    motif_prob_T    pwinform
             motif_information_content = calculate_motif_information_content(motif_probabilities)
             # print motif_information_content.split()[-1]
             line.extend([str(overlap_pos), str(overlap_pos_forwardlogo), str(motif_probabilities), str(motif_information_content)])
-            print '\t'.join(line)
+            print('\t'.join(line))
 
 
 
