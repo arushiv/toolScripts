@@ -68,7 +68,7 @@ if __name__ == '__main__':
     assoc_df = formatFile(associationFile, keepCols, inputFormat)
     
     if args.onlyFormat == "onlyFormat":
-        outdf = pybedtools.BedTool.from_dataframe(assoc_df).sort().to_dataframe()
+        assoc_df.sort_values(by=['CHR','POS'], inplace=True)
         assoc_df.to_csv(outputfile, sep='\t', index=False, compression="gzip")
     else:
         fileList = subsetFiles(annotationDirectory, subsetAnnotations)
