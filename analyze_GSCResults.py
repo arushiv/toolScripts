@@ -32,12 +32,11 @@ if __name__ == '__main__':
         df  = df.append(d, ignore_index=True)
 
     df.columns = ["columns","values","feature"]
-    print df
+
     df.loc[:,"columns"] = df.loc[:,"columns"].str.replace("\t","").str.replace(" ", "_")
 
     d = df.pivot(columns = "columns", values = "values", index = "feature").reset_index()
 
-    print d
     
     d.loc[:,'feature'].replace(inputString, "", inplace = True, regex = True)
 
