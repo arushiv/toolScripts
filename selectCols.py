@@ -14,4 +14,4 @@ if __name__ == '__main__':
     
     col = args.filecolnames
 
-    print d[col]
+    print(d[col])
