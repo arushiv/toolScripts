@@ -6,7 +6,7 @@ if __name__ == '__main__':
     parser.add_argument('file1', help="""File 1, with header names""")
     parser.add_argument('outputfile', help ="""Output file.""")
     parser.add_argument('-c', '--filecolnames', nargs='+', help = """Column headers to subset file on""")
-    parser.add_argument('-sep', '--separatorfile', default="\t", help = """File 1 field separator. Default = '\t'""")
+    parser.add_argument('-sep', '--separatorfile', default="\t", help = """File 1 field separator. Default = '\\t'""")
 
     args = parser.parse_args()
     
