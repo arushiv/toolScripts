@@ -98,10 +98,10 @@ if __name__ == '__main__':
     printString = '%s' % ', '.join(map(str, venn_arguments))
 
     makeRFile(printString, Rfile)
-    print "R script created at %s" %(Rfile)
+    print("R script created at %s" %(Rfile))
     
 
     if args.now == "now":
         cmd = "Rscript %s" %(Rfile)
         sp.call(cmd, shell=True)
-        print "Figure saved at %s.pdf" %(re.sub('.R','',Rfile))
+        print("Figure saved at %s.pdf" %(re.sub('.R','',Rfile)))
