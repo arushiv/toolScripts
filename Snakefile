@@ -1,11 +1,10 @@
-#!/usr/bin/env python3.5
-
-import subprocess as sp
 import os
-import glob
-import sys
 import pandas
-from snakemake.utils import R
+
+DATA = {
+    'summaryStats' : "/lab/data/gwas/2017_09_MAGIC/summaryStatistics/MAGIC_1KG_EA_{trait}_InvNorm_meta_2GC.gz",
+    'chromStateDir' : "/lab/work/arushiv/newhuman_datasets_by_13chromatinStates/Islets.{chromState}.bed"
+}
 
 DIRECTORIES = {
     'data' : "data",
@@ -18,15 +17,6 @@ DIRECTORIES = {
 rule final:
     input:
         os.path.join(DIRECTORIES['figures'], "fig.deviationFromExpectation.pdf")
-
-rule makeDirectories:
-    output:
-            DIRECTORIES['data'],
-            DIRECTORIES['intermediateFiles'],
-            DIRECTORIES['scripts'],
-            DIRECTORIES['figures']
-    shell:
-        r"""mkdir -p {output}"""
 
 rule linkDataFile:
     input:
