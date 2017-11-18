@@ -53,7 +53,7 @@ if __name__ == '__main__':
     outputdf = pandas.DataFrame()
     
     for runNumber in range(args.runs):
-        print runNumber + 1
+        print(runNumber + 1)
         tdf = sampleUnique(tssFile, colNumber, numberOfGenes)
         outdf = getNearestDistance(tdf, bedfilelist, runNumber)
         outputdf = outputdf.append(outdf, ignore_index=True)
