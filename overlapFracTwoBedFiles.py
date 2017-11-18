@@ -41,6 +41,6 @@ Usage:  ~/myEnv/bin/python ~arushiv/toolScripts/overlapFracTwoBedFiles.py a.bed 
     lengthIntersect = lengthOfBedFile(intersect)
     nameFile1 = getname(args.bedfile1)
     nameFile2 = getname(args.bedfile2)
-    print nameFile1, lengthFile1, nameFile2, lengthFile2, lengthIntersect, float(lengthIntersect)/lengthFile1  # getname(args.bedfile1), lengthOfBedFile(bedfile1), getname(args.bedfile2), lengthOfBedFile(bedfile2), lengthOfBedFile(intersect)
+    print(nameFile1, lengthFile1, nameFile2, lengthFile2, lengthIntersect, float(lengthIntersect)/lengthFile1)  # getname(args.bedfile1), lengthOfBedFile(bedfile1), getname(args.bedfile2), lengthOfBedFile(bedfile2), lengthOfBedFile(intersect)
     
     
