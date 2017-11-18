@@ -91,8 +91,8 @@ if __name__ == '__main__':
                 # print "n%s=%s\t%s" % (form(subset_number), l(intersect5(*subset)), formBed(subset))
                 venn_arguments.append("n%s=%s" % (form(subset_number), l(intersect5(*subset))))
 
-    print '%s' % ', '.join(map(str, venn_arguments))
-    print '%s' % ', '.join(map(str, namelist))
+    print('%s' % ', '.join(map(str, venn_arguments)))
+    print('%s' % ', '.join(map(str, namelist)))
     
 
     # print bedfile
