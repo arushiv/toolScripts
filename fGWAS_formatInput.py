@@ -33,14 +33,23 @@ def formatFile(associationFile, keepCols, inputFormat):
         d.loc[:,'POS'] = d['POS'].astype(int)
         d.loc[:,'CHR'] = d['CHR'].map(lambda x: "chr{x}".format(x=x))
 
+    """ Remove weird entries """
     d = d[d['POS'] > 0]
+
+    """ Rename and only retain needed columns """
     # d.loc[:,'start'] = d['POS'] - 1
     neededHeaders = ['SNPID','Z','F','N']
     renameList = dict(zip(keepCols, neededHeaders))
     d.rename(columns = renameList, inplace=True)
-    
     headerlist = ['CHR','POS'] + neededHeaders
     d = d[headerlist]
+
+    """Remove duplicates, retain highest abs(Z)"""
+    d.loc[:,'absZ'] = d['Z'].abs()
+    d.sort_values(by=['CHR','POS','absZ'], inplace=True)
+    d.drop('absZ', axis=1, inplace=True)
+    d.drop_duplicates(subset=['CHR','POS'], inplace=True)
+
     print("assocFileFormatted")
     return d
 
@@ -68,7 +77,6 @@ if __name__ == '__main__':
     assoc_df = formatFile(associationFile, keepCols, inputFormat)
     
     if args.onlyFormat == "onlyFormat":
-        assoc_df.sort_values(by=['CHR','POS'], inplace=True)
         assoc_df.to_csv(outputfile, sep=' ', index=False)
     else:
         fileList = subsetFiles(annotationDirectory, subsetAnnotations)
