@@ -34,10 +34,10 @@ class RunGregor(object):
             self.bedCounter=1
         elif len(glob.glob1(bedFileDirectory,"*.bed")) % bedFilesPerJob == 0:
             self.bedCounter=((len(glob.glob1(bedFileDirectory,"*.bed")))/bedFilesPerJob)
-            print self.bedCounter
+            print(self.bedCounter)
         else:
             self.bedCounter=((len(glob.glob1(bedFileDirectory,"*.bed")))/bedFilesPerJob) + 1
-            print self.bedCounter
+            print(self.bedCounter)
         numberOfGregorJobs=snpFileCounter*ldCounter*self.bedCounter
 
         self.fileList = []
@@ -60,7 +60,7 @@ class RunGregor(object):
                     if not os.path.exists(newpath):
                         os.makedirs(newpath)
                     else:
-                        print "Caution: Directory already exists!!"
+                        print("Caution: Directory already exists!!")
 
                         
     def makeIndexBedFiles(self, bedFileDirectory, bedFilesPerJob):
