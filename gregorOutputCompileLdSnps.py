@@ -9,7 +9,7 @@ import glob
 import os
 import pandas
 import numpy as np
-from StringIO import StringIO
+# from StringIO import StringIO
 import pybedtools
                         
 
