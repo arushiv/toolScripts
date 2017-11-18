@@ -45,7 +45,7 @@ def operate(bedfile):
     jasparJolmaTFs, encodeTFs = subsetJasparJolma(bedfile)
     encodeTFs = splitByTF(encodeTFs)
     grouped = encodeTFs.groupby('name')
-    # print grouped.apply(lambda x: bestScoringFeature(x))
+    # print(grouped.apply(lambda x: bestScoringFeature(x)))
     outdf = grouped.apply(lambda x: bestScoringFeature(x))
 
     outdf['name'] = outdf['name'] + "_" + outdf['thickStart'].map(str) 
