@@ -9,7 +9,6 @@ import glob
 import os
 import pandas
 import numpy as np
-from StringIO import StringIO
 import pybedtools
                         
 def getLdSnps(files, gregorOutputFolder):  # from index.SNP.in.LD.Chrxx files, make dataframe of overlapping index snps and their LD buddies
@@ -60,18 +59,18 @@ if __name__ == '__main__':
     elif args.feature is not None:
             bedList = args.feature.split(",")
     else:
-            print "Please provide at least one argument -p or -f"
+            print("Please provide at least one argument -p or -f")
 
 
 for files in bedList:
         df = getLdSnps(files, gregorOutputFolder)
         if not df.empty:
-                print files
+                print(files)
                 ldBedFile = makeLdBedFile(df)
                 try:
                         overlappingSnps = determineOverlaps(ldBedFile, files)
                 except pandas.io.common.EmptyDataError:
-                        print "GREGROR reported overlap not found"     # Sanity check
+                        print("GREGROR reported overlap not found")     # Sanity check
                 else:
                         overlappingSnps['filename'] = os.path.basename(files.rstrip())
                         outdf = outdf.append(overlappingSnps, ignore_index=True)
