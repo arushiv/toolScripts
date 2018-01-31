@@ -98,7 +98,7 @@ def getProxyNCI(workflowFile, d, resultFileDir, population, r2Threshold, outputf
     printWait(workflowFile)
     printResources(workflowFile, 1, 1, 4000, "15:00")
     
-    cmd_mergeOutputs = r"""for i in `ls {resultfiles}`; do b=`basename $i _ProxyResult.dat`; zcat $i | awk -F'\t' '{{if (( $7>={r2Threshold} )) print $1,$2,$3,$4,$5"\t""'"$b"'"}}' OFS='\t'; done | sort | uniq > {output}; echo -e "proxy_rsID\tproxy_Coord\tproxy_Alleles\tproxy_MAF\tR2\tsnp" | cat - {output} > temp; mv temp {output}""".format(resultfiles=os.path.join(resultFileDir, "*_ProxyResult.dat.gz"), r2Threshold=r2Threshold, output=outputfile)
+    cmd_mergeOutputs = r"""for i in `ls {resultfiles}`; do b=`basename $i _ProxyResult.dat`; zcat $i | awk -F'\t' '{{if (( $7>={r2Threshold} )) print $1,$2,$3,$4,$5,$7"\t""'"$b"'"}}' OFS='\t'; done | sort | uniq > {output}; echo -e "proxy_rsID\tproxy_Coord\tproxy_Alleles\tproxy_MAF\tdistance\tR2\tsnp" | cat - {output} > temp; mv temp {output}""".format(resultfiles=os.path.join(resultFileDir, "*_ProxyResult.dat.gz"), r2Threshold=r2Threshold, output=outputfile)
     workflowFile.write(cmd_mergeOutputs)
                     
 
