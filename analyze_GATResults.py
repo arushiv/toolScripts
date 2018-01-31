@@ -24,7 +24,7 @@ def makeResultDf(all_files, string, split, infosplit):
         dlist.append(d)
         
     df  = pandas.concat(dlist, ignore_index=True)
-    
+    print(df.head())
     if split is not None:
         df[infosplit] = pandas.DataFrame([x for x in df.loc[:,'feature'].str.split('.')])
         df.drop('feature', axis=1, inplace=True)
