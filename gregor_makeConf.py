@@ -28,10 +28,10 @@ def makeIndexBedFile(bedfilename, annotfiles, annotFileDir):
 def getopts():
     parser = argparse.ArgumentParser(description='Generate GREGOR conf file')
     parser.add_argument('--conffile', type=str, help="""Name of output .conf file""")
+    parser.add_argument('--bedfilename', type=str, help="""Name of file with paths to annotfiles. If this does not exist, it will be created using either --annotfiles or --annotFileDir arguments.""")
     parser.add_argument('--annotfiles', nargs='+', type=str, help="""file with paths of annotation files to calculate enrichment in.""")
     parser.add_argument('--annotFileDir', type=str, help="""The directory with (unzipped) bed files if --annotfiles are not specified. Will take all .bed files in this directory""")
     parser.add_argument('--snpfile', type=str, help="""chr:pos formatted SNP files. IMPORTANT: filename should not contain '_'""")
-    parser.add_argument('--bedfilename', type=str, help="""Name of file to be created with paths of annotfiles""")
     parser.add_argument('--refdir', type=str, default='/lab/data/sw/GREGOR/1.2.1', help=""" GREGOR reference. Default = /lab/data/sw/GREGOR/1.2.1 """)
     parser.add_argument('--population', type=str, default='EUR', help=""" Population. Default = EUR """)
     parser.add_argument('-r2', '--gregorR2Threshold', default='0.8', help="""minimum LD r2 for proxy SNPs (default: 0.8)""")
@@ -49,7 +49,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     makeOutputDirectory(args.outputdir)
-    makeIndexBedFile(args.bedfilename, args.annotfiles, args.annotFileDir)
+
+    if not os.path.isfile(args.bedfilename):
+        "Bed File being created - "
+        makeIndexBedFile(args.bedfilename, args.annotfiles, args.annotFileDir)
 
     with open(args.conffile, 'w') as f:
         f.write("INDEX_SNP_FILE = {snpfile} \n".format(snpfile=args.snpfile))
