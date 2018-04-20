@@ -28,7 +28,7 @@ def fixInputFile(filename, header, chrom_col, pos_col):
     return df
     
 def getOpts():
-    parser = argparse.ArgumentParser(description='For a input file with chrom and pos fields for SNPs, fetch rsids and output in a dataframe',
+    parser = argparse.ArgumentParser(description='For a input file with chrom and pos fields for SNPs, fetch rsids and output in a dataframe. Uses dbsnp 150 vcf by default',
                                      usage='python getRsIds_tabix.py --inputfile <inputfile> --outputfile <outputfile> --vcfFile <filepath> --chrom chromosome --pos position')
     parser.add_argument('--inputfile', required=True, type=str,
                         help="""Tab delimited input file. Should contain at least chrom and pos information. See other options to specify format""")
