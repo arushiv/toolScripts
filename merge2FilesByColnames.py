@@ -15,7 +15,7 @@ if __name__ == '__main__':
     parser.add_argument('-sep2', '--separatorfile2', default="\t", help = """File 2 field separator. Default = tab""")
     parser.add_argument('-t', '--mergetype', default="inner", help = """left, right, outer or inner join. Default='inner'""")
     parser.add_argument('-k', '--keepCols', nargs='+', help = """Keep these columns in the final output. If some columns not provided in -c1 or -c2 have same names in two files, remember to include _x or _y""")
-
+    parser.add_argument('-rdup', '--removeDuplicates', action = 'store_true', help = """Remove duplicates considering all columns""")
     args = parser.parse_args()
 
     if args.file1header is not None:
@@ -41,5 +41,8 @@ if __name__ == '__main__':
 
     if args.keepCols is not None:
         d = d[args.keepCols]
+
+    if args.removeDuplicates:
+        d.drop_duplicates(inplace=True)
         
     d.to_csv(args.outputfile, sep='\t', index=False, na_rep="NA")
