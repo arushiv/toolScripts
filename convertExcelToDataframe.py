@@ -8,10 +8,13 @@ if __name__ == '__main__':
     parser.add_argument('outputfile', help ="""Output file.""")
     parser.add_argument('-c', '--filecolnames', nargs='+', help = """Column headers to subset file on""")
     parser.add_argument('-sep', '--separatorfile', default="\t", help = """Output file field separator. Default = '\\t'""")
-
+    parser.add_argument('--sheet', help = """Sheet name to read.""")
     args = parser.parse_args()
-    
-    d = pandas.read_excel(args.file1)
+
+    if args.sheet is not None:
+        d = pandas.read_excel(args.file1, sheet_name=args.sheet)
+    else:
+        d = pandas.read_excel(args.file1)
     
     col = args.filecolnames
 
