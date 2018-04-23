@@ -1,0 +1,93 @@
+import os
+import pandas
+
+config = {
+    'GAT' : {
+        'DATA' : {
+            'annotation' : "/lab/work/arushiv/chromatin/crossSpeciesAnalysis/crossSpeciesEqtlanalysis/enrichmentATACPeaks/gregorRun/index_bedFiles/{allNames_annot}.SE.hg19hmr05.bed",
+            'segment' : "/lab/work/arushiv/chromatin/crossSpeciesAnalysis/crossSpeciesEqtlanalysis/enrichmentATACPeaks/gregorRun/index_bedFiles/{allNames_segment}.SE.hg19hmr05.bed",
+            'workspace' : '/lab/work/arushiv/bnMapped_HMRregions/hmr_tiletrack.0.5.concatenated.bed',
+            'output' : "{allNames_segment}.{allNames_annot}.SE.gatResults.dat",
+            'count_output' : "{allNames_segment}.{allNames_annot}.SE.%s.countsOutput",
+            'log' : "{allNames_segment}.{allNames_annot}.SE.gatLog.dat",
+            'fig_output' : "enrichment_GAT.pdf"
+        },
+
+        'DIRECTORIES' : {
+            'intermediateFiles' : "intermediateFiles",
+            'figures' : "figures",
+            'gatResults' : "intermediateFiles/gatResults",
+            'gatLogs' : "intermediateFiles/gatLogs",
+            'gatCountsIntermediate' : "intermediateFiles/gatCountsIntermediate",
+            'gatThreads' : 3
+        },    
+
+        'PARAMETERS' : {
+            'rodentCell' : ['MIN6', 'INS1', 'RI'],
+            'humanCell' : ['Islet1', 'Islet2', 'Islet-intersect','Islet-union', 'endoC', 'GM12878', 'Adipose'],
+            'allNames' : ['MIN6', 'INS1', 'RI', 'Islet-intersect', 'endoC', 'GM12878'],
+            'filenameString' : "*.gatResults.dat",
+            'colnames' : "segment annotation tssLoc",
+        },
+
+        'SCRIPTS' : {
+            'compileResults' : "scripts/analyze_GATResults.py",
+            'plot' : "scripts/plot_5kbTSSProximalDistal.R"
+        },
+    }
+}
+
+rule all_GAT:
+    """
+    Workflow to compute overlap enrichment between two sets of genomic features
+    """
+    input:
+        os.path.join(config['GAT']['DIRECTORIES']['figures'], config['GAT']['DATA']['fig_output'])
+                
+rule runGAT:
+    """
+    Run GAT. Segment files are merged by default, if all segment files only have 3 columns, use flag --with-segment-tracks so that the original filename is stored in the output instead of "merged"
+    IMP - do not use --with-segment-tracks flag if segment files contain 4 columns and they don't have to be treated as separate
+    """
+    input:
+        annot = config['GAT']['DATA']['annotation'],
+        segment = config['GAT']['DATA']['segment'],
+        workspace = config['GAT']['DATA']['workspace']
+    output:
+        full = os.path.join(config['GAT']['DIRECTORIES']['gatResults'], config['GAT']['DATA']['output'])
+    params:
+        counts = os.path.join(config['GAT']['DIRECTORIES']['gatCountsIntermediate'], config['GAT']['DATA']['count_output'])
+    log:
+        os.path.join(config['GAT']['DIRECTORIES']['gatLogs'], config['GAT']['DATA']['log'])
+    shell:
+        r"""
+        ionice -c2 -n7 gat-run.py -a {input.annot} -s {input.segment} -w {input.workspace} --stdout {output.full} --log {log} --output-counts-pattern {params.counts}  
+        """
+
+rule compileResults:
+    input:
+        expand(rules.runGAT.output.full, allNames_annot=config['GAT']['PARAMETERS']['allNames'], allNames_segment=config['GAT']['PARAMETERS']['allNames']),
+    output:
+        os.path.join(config['GAT']['DIRECTORIES']['intermediateFiles'], "results_GAT.dat")
+    params:
+        script = config['GAT']['SCRIPTS']['compileResults'],
+        filenameString = config['GAT']['PARAMETERS']['filenameString'],
+        colnames = config['GAT']['PARAMETERS']['colnames'], 
+        directory = config['GAT']['DIRECTORIES']['gatResults']
+    shell:
+        r"""
+        python {params.script} {output} -s {params.filenameString} -d {params.directory} --split -is {params.colnames} 
+        """
+        
+rule plotEnrichment:
+    input:
+        rules.compileResults.output
+    output:
+        os.path.join(config['GAT']['DIRECTORIES']['figures'], config['GAT']['DATA']['fig_output'])
+    params:
+        script = config['GAT']['SCRIPTS']['plot']
+    shell:
+        r"""
+        Rscript {params.script} {input} {output}
+        """
+    
