@@ -21,6 +21,7 @@ config = {
 
     # GREGOR parameters and specify wildcard values.
     'PARAMETERS' : {
+        'gregor_version_path' : "/lab/sw/modules/GREGOR/1.2.1/script/GREGOR.pl",
         'TRAITS' : ['T2D'],
         'ANNOTATION' : ['Islets.chromatinStates'],
         'POPULATION' : "EUR",
@@ -30,7 +31,7 @@ config = {
 
     'SCRIPTS' : {
         'makeConfFile' : "/home/arushiv/toolScripts/gregor_makeConf.py",
-        'assembleDF' : "/home/arushiv/toolScripts/makeDataFrame_gregor.py"
+        'assembleDF' : "/home/arushiv/toolScripts/makeDataFrame_gregor_new.py"
     },
 
 }
@@ -80,9 +81,11 @@ rule runGREGOR:
     output:
         ld = os.path.join(config['DIRECTORIES']['output_dir'], "index_SNP/index.snp.LD.txt"),
         stats = os.path.join(config['DIRECTORIES']['output_dir'], "StatisticSummaryFile.txt")
+    params:
+        gregor_version_path = config['PARAMETERS']['gregor_version_path']
     shell:
         r"""
-        ionice -c2 -n7 GREGOR.pl --conf {input.conf}
+        ionice -c2 -n7 {params.gregor_version_path} GREGOR.pl --conf {input.conf}
         """
         
 rule assembleStats:
@@ -95,5 +98,5 @@ rule assembleStats:
         script = config['SCRIPTS']['assembleDF']
     shell:
         """
-        for files in {input.stats}; do python {params.script} $files {output.stats}; done
+        python {params.script} --filename {input.stats} --outputfilename {output.stats}
         """
