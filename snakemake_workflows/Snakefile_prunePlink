@@ -1,0 +1,101 @@
+import argparse
+import pandas
+
+DATA = {
+    'input_position_file': "gtexV7.significantfdr0.1.dat",
+    'vcf': "/lab/data/genomes/human/hg19/1000GenomesDownloads/ALL.chr{chrom}.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz",
+    'vcf_sampleInfo': "/lab/data/genomes/human/hg19/1000GenomesDownloads/igsr_3990samples_allPopulations.tsv",
+}
+
+PARAMETERS = {
+    'population_type': "Superpopulation code",  # Choose which column in vcf_sampleInfo file to subset samples on. Another option could be "Population code" to subest by population
+    'population_code': "EUR",
+    'output_directory': "intermediateFiles/prune",  # Where output will be saved
+    'output_string': "prune1000g", # output string for vcftools
+    'ldwindow': 1000000,
+    'r2': 0.2,
+    'maf': 0.05, # Min MAF in the popluation considered can be filtered on to avoid ultra low freq allele causing duplicate rsIDs,
+    'p1': 0.1,
+    'p2': 0.1,
+}
+CHROM = range(1, 23)
+
+rule final_getLDproxies:
+    """
+    Workflow for pruning a list od SNPs using P value of association, using 1000g phase 3 vcf. 
+    Population codes or Superpopulation codes can be used to subset 1000g samples  
+    Include this workflow as part of other workflow requiring proxies 
+    Vcf files first subset by the selected population, MAF 0.01 filter is applied that avoids any duplicates rsID 
+    that arise due to very low frequency rare third or more alleles. Also, all indels are removed.
+    Pruning is done using --clump flags
+    """
+    input:
+        main = os.path.join(PARAMETERS['output_directory'], "myfile.clumped"),
+
+rule makeSampleFile:
+    input:
+        sampleInfo = DATA['vcf_sampleInfo']
+    output:
+        samplefile = os.path.join(PARAMETERS['output_directory'], "subsetSamples.txt")
+    run:
+        d = pandas.read_csv(input.sampleInfo, sep='\t')
+        d = d[d[PARAMETERS['population_type']] == PARAMETERS['population_code']]
+        d[['Sample name']].to_csv(output[0], header=False, index=False)
+
+rule subsetVCF:
+    input:
+        snpfile = DATA['vcf'],
+        samplefile = rules.makeSampleFile.output.samplefile,
+        posfile = "snplist.txt"
+    output:
+        vcf = temp(os.path.join(PARAMETERS['output_directory'], "chr{chrom}.recode.vcf.gz")),
+        index = temp(os.path.join(PARAMETERS['output_directory'], "chr{chrom}.recode.vcf.gz.tbi")),
+    params:
+        outstring = os.path.join(PARAMETERS['output_directory'], "chr{chrom}"),
+    shell:
+        r"""
+        vcftools --gzvcf {input.snpfile}  --keep {input.samplefile} \
+        --remove-indels  \
+        --snps {input.posfile} \
+        --out {params.outstring} --recode ;
+        bgzip {params.outstring}.recode.vcf
+        tabix {output.vcf}
+        """
+
+rule get_plink_files:
+    """Make plink format input files after filtering 1000g vcf. IMP - vcf files are usually large so designated to be temp """
+    input:
+        vcf = expand(os.path.join(PARAMETERS['output_directory'], "chr{chrom}.recode.vcf.gz"), chrom = CHROM),
+        index = expand(os.path.join(PARAMETERS['output_directory'], "chr{chrom}.recode.vcf.gz.tbi"), chrom = CHROM)
+    output:
+        vcf = temp(os.path.join(PARAMETERS['output_directory'], "myfile.recode.vcf.gz")),
+        mapfile = temp(os.path.join(PARAMETERS['output_directory'], "myfile.map")),
+        pedfile = temp(os.path.join(PARAMETERS['output_directory'], "myfile.ped")),
+    params:
+        outstring = os.path.join(PARAMETERS['output_directory'], "myfile"),
+        maf = PARAMETERS['maf'],
+    shell:
+        r"""
+        vcf-concat {input.vcf} | bgzip -c > {output.vcf} ;
+        vcftools --gzvcf {output.vcf} --plink --out {params.outstring}
+        """
+        
+rule prune_plink:
+    input:
+        mapfile = rules.get_plink_files.output.mapfile,
+        pedfile = rules.get_plink_files.output.pedfile,
+        inputfile = DATA['input_position_file']
+    output:
+        clumpedfile = os.path.join(PARAMETERS['output_directory'], "myfile.clumped"),
+    params:
+        outstring = rules.get_plink_files.params.outstring,
+        r2 = PARAMETERS['r2'],
+        p1 = PARAMETERS['p1'],
+        p2 = PARAMETERS['p2'],
+    shell:
+        r"""
+        /lab/sw/modules/plink/1.9/bin/plink --file {params.outstring} \
+        --clump {input.inputfile} --clump-r2 {params.r2} --clump-p1 {params.p1} --clump-p2 {params.p2} \
+        --out {params.outstring}
+        """
+        
