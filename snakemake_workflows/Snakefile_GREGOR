@@ -43,7 +43,7 @@ rule final:
         os.path.join(config['DIRECTORIES']['gregor_dir'], config['DATA']['output']),
 
 rule makeBedFiles:
-    """Add all annotation paths to GREGOR bedfile """
+    """Add all annotation paths to GREGOR bedfile - all annotations will be tested in one GREGOR run, so we make one file """
     input:
         annotations = expand(config['DATA']['annotation'], annotation = config['PARAMETERS']['ANNOTATION']),
     output:
@@ -54,6 +54,7 @@ rule makeBedFiles:
         """
         
 rule setupGREGOR:
+    """Provide parameters to make GREGOR .conf file - one file per trait """
     input:
         snpfile = config['DATA']['input_snps'],
         bedfile = rules.makeBedFiles.output.bedfile
@@ -73,6 +74,7 @@ rule setupGREGOR:
         """
         
 rule runGREGOR:
+    """Run GREGOR """
     input:
         conf = rules.setupGREGOR.output.conf
     output:
@@ -84,6 +86,7 @@ rule runGREGOR:
         """
         
 rule assembleStats:
+    """Assemble dataframe for all traits in one file """
     input:
         stats = expand(rules.runGREGOR.output.stats, trait = config['PARAMETERS']['TRAITS'], gregor_r2 = config['PARAMETERS']['gregor_r2'])
     output:
