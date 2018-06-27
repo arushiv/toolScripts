@@ -68,8 +68,8 @@ def mergeResults(resultFileDir, d, outputfile):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Script to prune SNPs based on LD in specific populations using 1000g phase 3 data using the NCI portal https://analysistools.nci.nih.gov/LDlink/?tab=snpclip. Can also provide a MAF threshold to filter variants. Should supply a sorted list of variants by p-value or other applicable criteria to retain SNPs', usage='python pruneVariantsAndFilterMaf_1000gNCIPortal.py <rsIDlist> -p CEU -r2 0.8 -maf 0.2 <outputfilename> ')
-    parser.add_argument('variantfile', help="""file with rsIDs to search proxies of. Also needs chrom information. Tab separated. Header name of the rsID and chrom column should be 'snp', 'chrom'. Pre-sort this by p-value etc, variants further down in the list that are in high LD with top variants will be removed""")
+    parser = argparse.ArgumentParser(description='Script to prune SNPs based on LD in specific populations using 1000g phase 3 data using the NCI portal https://analysistools.nci.nih.gov/LDlink/?tab=snpclip. Can also provide a MAF threshold to filter variants. Should supply a sorted list of variants by p-value or other applicable criteria to retain SNPs', usage='python pruneVariantsAndFilterMaf_1000gNCIPortal.py <variantfile> <outputfile> -p CEU -r2 0.8 -maf 0.2 ')
+    parser.add_argument('variantfile', help="""file with rsIDs to search proxies of. Also needs chrom information. Tab separated. Header name of the rsID and chrom column should be 'snp', 'chrom'. """)
     parser.add_argument('-hv', '--variantfileHeader', nargs='+', help="""If variant file does not contain header, supply space separated list here. Header name of the rsID and chrom column should be 'snp', 'chrom'""")
     parser.add_argument('-p', '--population', default='CEU', help="""Population to search proxies in. Options are: \n
 (AFR) African:[[
@@ -104,10 +104,10 @@ if __name__ == '__main__':
     (STU) Sri Lankan Tamil from the UK
     (ITU) Indian Telugu from the UK \n ]]
     provide sub or superpopulation code(s) WITHOUT parantheses.""" )
-    parser.add_argument('-dir', '--resultFileDir', default='results_ldPrune', help="""Directory that will contain all LD prune results.""")
+    parser.add_argument('-dir', '--resultFileDir', default='results_ldPrune', help="""Directory that will contain all raw LD prune results.""")
     parser.add_argument('-r2', '--r2Threshold', type=float, default=0.8, help="""Retain variants with this r2 or lower and paste into the output file. Default = 0.8""")
     parser.add_argument('-maf', '--mafThreshold', type=float, default=0.0, help="""Retain variants with this r2 or lower and paste into the output file. Default = 0.0""")
-    parser.add_argument('-s', '--sortName', type=str, help="""Give column name to sort rsIDs by before pruning.""")
+    parser.add_argument('-s', '--sortName', type=str, help="""Give column name to sort rsIDs by before pruning. Variants further down in the list that are in high LD with top variants will be removed""")
 
     parser.add_argument('outputfile', help="""name of the outputfile""")
     
