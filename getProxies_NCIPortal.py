@@ -77,7 +77,7 @@ def getProxies(outdir, populationString, variant):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Get proxy variants from NCI website https://analysistools.nci.nih.gov ', usage='python getProxies_NCIPortal.py rsID -p EUR -o <outputfilename> ')
+    parser = argparse.ArgumentParser(description='Get proxy variants from NCI website https://analysistools.nci.nih.gov ', usage='python getProxies_NCIPortal.py <variantfile> -p EUR -ld 0.8 -o <outputfilename> ')
     parser.add_argument('variantfile', type=argparse.FileType('r'), help="""file with rsIDs to search proxies of.""")
     parser.add_argument('-p', '--population', action='append', default=['EUR'], help="""Population to search proxies in. Options are: \n
 (AFR) African:[[
