@@ -34,14 +34,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="""For each row in bedfile 1, find fraction of overlaps with bedfile 2 grouped by unique name field in bedfile 2. Output file will contain one extra column over bedfile 1 noting the fraction of overlap with each chromatin state separated by semicolons.
 Usage: python ~arushiv/toolScripts/findOverlapsFracWithChromStates.py file1.bed file2.bed out.bed""")
-    parser.add_argument('bedfile1', type=str, help="""bed file 1. Each line of this bed file will be tested for overlaps. IMP: Supply header, first 3 columns should be 'chrom','start','end' """)
+    parser.add_argument('bedfile1', type=str, help="""bed file 1. Each line of this bed file will be tested for overlaps. IMP: Supply header, first 3 columns should be chrom, start, end """)
+    parser.add_argument('--header', nargs='+', help="""If bed file 1 does not contain header, provide a space separated list. IMP first 3 columns should be chrom, start, end """)
     # parser.add_argument('-d', '--directory', type=str, default='/lab/work/arushiv/13ChromatinStatesByCellType', help="""Take all bed.gz files from this directory.""")
     parser.add_argument('bedfile2', type=str, help="""bed file 2.""")
     parser.add_argument('outputfile', help="""Output file name.""")
 
     args = parser.parse_args()
 
-    bedfile1 = pandas.read_csv(args.bedfile1, sep='\t')
+    if args.header is not None:
+        bedfile1 = pandas.read_csv(args.bedfile1, sep='\t', header=None, names=args.header)
+    else:
+        bedfile1 = pandas.read_csv(args.bedfile1, sep='\t')
+        
     bedfile2name = args.bedfile2
 
     computeOverlap(bedfile1, bedfile2name).to_csv(args.outputfile, sep='\t', index=False)
