@@ -8,7 +8,6 @@ import glob
 import os
 import pandas
 import numpy as np
-from StringIO import StringIO
 import pybedtools
                         
 def getLdSnps(files, gregorOutputFolder):  # from index.SNP.in.LD.Chrxx files, make dataframe of overlapping index snps and their LD buddies
@@ -41,13 +40,13 @@ if __name__ == '__main__':
     elif args.feature is not None:
             bedList = args.feature.split(",")
     else:
-            print "Please provide at least one argument -p or -f"
+            print("Please provide at least one argument -p or -f")
 
 
 for files in bedList:
         df = getLdSnps(files, gregorOutputFolder)
         if not df.empty:
-                print files
+                print(files)
                 outdf = outdf.append(df, ignore_index=True)
 
 outdf.to_csv(outputfile, sep='\t', index=False, header=['index_SNP','inBedPos','bedStart','bedEnd','filename'])
