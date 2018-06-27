@@ -71,9 +71,9 @@ if __name__ == '__main__':
                             end += 3
                             break
                 if not fraction:
-                    print ' %s %s %s not_found' % (line[0], line[1], line[2])
+                    print(' {} {} {} not_found'.format(line[0], line[1], line[2]))
                 else:
-                    print line[0], line[1], line[2], fraction, max(fraction.iteritems(), key=operator.itemgetter(1))
+                    print(line[0], line[1], line[2], fraction, max(fraction.iteritems(), key=operator.itemgetter(1)))
 
         if str(org) == 'rat':
             for line in map_file:
@@ -103,6 +103,6 @@ if __name__ == '__main__':
                             end += 3
                             break
                 if not fraction:
-                    print ' %s %s %s not_found' % (line[0], line[3], line[4])
+                    print('{} {} {} not_found'.format(line[0], line[3], line[4]))
                 else:
-                    print line[0], line[3], line[4], fraction, max(fraction.iteritems(), key=operator.itemgetter(1))
+                    print(line[0], line[3], line[4], fraction, max(fraction.iteritems(), key=operator.itemgetter(1)))
