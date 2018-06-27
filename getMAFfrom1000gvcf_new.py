@@ -34,7 +34,7 @@ def printBash(x):
 
 def getMaf(workflowFile, intermediateFileDir, vcfDirPath, population, inputfile, header, outputfile):
     filedf = pandas.read_csv(inputfile, sep='\t', header=None, names=header)
-    
+    newMkdir(intermediateFileDir)
     for name, group in filedf.groupby('chrom'):
         filename = os.path.join(intermediateFileDir, "%s.%s" %(name, os.path.basename(inputfile)))
         vcfFileName = os.path.join(vcfDirPath, "ALL.%s.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz" %(name))
