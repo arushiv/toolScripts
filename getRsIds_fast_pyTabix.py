@@ -39,7 +39,7 @@ if __name__ == '__main__':
     args = getOpts()
     
     if args.header is not None:
-        d = pandas.read_csv(args.inputfile, sep='\t', header=None, names=header)
+        d = pandas.read_csv(args.inputfile, sep='\t', header=None, names=args.header)
     else:
         d = pandas.read_csv(args.inputfile, sep='\t')
 
