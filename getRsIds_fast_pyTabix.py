@@ -27,7 +27,7 @@ def getOpts():
     parser.add_argument('--chunksize', type=int, default=300000,
                         help="""Number of rows in a chunk as inputfile is read in chunks """)
     parser.add_argument('--chrom-type', 
-                        help="""type of chrom column. object or int64 """)
+                        help="""type of elements in the chrom column. str if column contains 1, 3, X, Y; int if column contains only chrom numbers""")
     parser.add_argument('--subset-cols', type=str, nargs='+',
                         help="""If input file is too large, subsetting to read in only required columns can be helpful. 
                         Provide these column names.""")
@@ -36,26 +36,6 @@ def getOpts():
                         help="""output file name. Will contain an extra column named 'snpRsID'.""")
     args = parser.parse_args()
     return args
-
-def myQuery_int(chrom, pos):
-    """If some weird chromosome is not found in the vcf, tabix throws TabixError. Just return nan in
-    such cases so rest of the positions can be queried"""
-    try:
-        value = tb.queryi(chrom, pos, pos)
-    except tabix.TabixError:
-        return numpy.nan
-    return value
-
-def myQuery_str(chrom, pos):
-    """
-    If chrom column is of the datatype object, i.e. has str values:
-    If some weird chromosome is not found in the vcf, tabix throws TabixError. Just return nan in
-    such cases so rest of the positions can be queried"""
-    try:
-        value = tb.query(chrom, pos, pos)
-    except tabix.TabixError:
-        return numpy.nan
-    return value
 
 def peek(iterable):
     """Check if tabix output has some values. Return the third value that is the rsID. If the tabix output is empty, return nan """
@@ -73,7 +53,6 @@ def query_function(chrom, pos, chromType, opened_tabix):
     function_dictionary = {
         'str' : opened_tabix.query,
         'int' : opened_tabix.queryi,
-        'pos' : opened_tabix.querys,
     }
     try:
         value = function_dictionary[chromType](chrom, pos, pos)
@@ -81,7 +60,6 @@ def query_function(chrom, pos, chromType, opened_tabix):
         return numpy.nan
     return value
     
-
 def apply_on_chunk(chunk, chromType, opened_tabix):
     chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(query_function(x['chrom'], x['pos'], chromType, opened_tabix)), axis=1)
     print("chunk processed")
@@ -92,45 +70,15 @@ def apply_on_chunk(chunk, chromType, opened_tabix):
 if __name__ == '__main__':
 
     args = getOpts()
-
-    if (not args.header-pos and not args.header-names) or ( args.header-pos and args.header-names):
+    if ((args.header_pos is not None and args.header_names is not None) or ( args.header_pos is None and args.header_names is None)):
         print("Provide either --header-pos or --header-names argument")
         sys.exit()
 
-    d = pandas.read_csv(args.inputfile, sep='\t', header=args.header-pos, names=args.header-names, usecols=args.subsetCols, chunksize=args.chunksize)
+    d = pandas.read_csv(args.inputfile, sep='\t', header=args.header_pos, names=args.header_names, usecols=args.subset_cols, chunksize=args.chunksize)
     
     tb = tabix.open(args.vcf)
 
-    # chromType = d[[args.chrom]].dtypes[0]
-    l = [apply_on_chunk(chunk, args.chrom-type, tb) for chunk in d]
-    # """ Get rsid """
-    # if args.chromType == "object":
-    #     l = [apply_on_chunk(chunk) for chunk in d]
-    #     # tempcol = "tempcol{time}".format(time = time.time())
-    #     # d.loc[:, tempcol] = d[args.chrom].str.replace("chr", "")
-    #     for chunk in d:
-    #         chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(myQuery_str(x['chrom'], x['pos'])), axis=1)
-    #         l.append(chunk)
-    #         print("chunk processed")
-        
-    #     # # d.loc[:,'snpRsID'] = d.apply(lambda x: peek(myQuery_str(x[tempcol], x[args.pos])), axis=1)
-    #     # d.drop(tempcol, axis=1, inplace=True)
-        
-    # elif args.chromType == "int64":
-    #     for chunk in d:
-            chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(myQuery_int(x['chrom'], x['pos'])), axis=1)
-            l.append(chunk)
-
-        # d.loc[:,'snpRsID'] = d.apply(lambda x: peek(myQuery_int(x[temp_chrom_column], x[args.pos])), axis=1)
-
-
-            
-    # if args.chrType == "str":
-    #     d.loc[:,'snpRsID'] = d.apply(lambda x: peek(tb.query(x[args.chrom], x[args.pos], x[args.pos])), axis=1)
-
-    # elif args.chrType == "int":
-    #     d.loc[:,'snpRsID'] = d.apply(lambda x: peek(tb.queryi(x[args.chrom], x[args.pos], x[args.pos])), axis=1)
-
+    l = [apply_on_chunk(chunk, args.chrom_type, tb) for chunk in d]
    
     pandas.concat(l).to_csv(args.outputfile, index=False, sep='\t', na_rep="NA")
 
