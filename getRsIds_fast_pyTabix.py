@@ -67,6 +67,25 @@ def peek(iterable):
         return numpy.nan
     return value
 
+def query_function(chrom, pos, chromType, opened_tabix):
+    """If some weird chromosome is not found in the vcf, tabix throws TabixError. Just return nan in
+    such cases so rest of the positions can be queried"""
+    function_dictionary = {
+        'str' : opened_tabix.query,
+        'int' : opened_tabix.queryi,
+        'pos' : opened_tabix.querys,
+    }
+    try:
+        value = function_dictionary[chromType](chrom, pos, pos)
+    except tabix.TabixError:
+        return numpy.nan
+    return value
+    
+
+def apply_on_chunk(chunk, chromType, opened_tabix):
+    chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(query_function(x['chrom'], x['pos'], chromType, opened_tabix)), axis=1)
+    print("chunk processed")
+    return chunk
   
     
 
@@ -83,26 +102,22 @@ if __name__ == '__main__':
     tb = tabix.open(args.vcf)
 
     # chromType = d[[args.chrom]].dtypes[0]
-    # def apply_on_chunk(chunk):
-    #     chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(myQuery_str(x['chrom'], x['pos'])), axis=1)
-    #     print("chunk processed")
-    #     return chunk
-    
-    """ Get rsid """
-    if args.chromType == "object":
-        # l = [apply_on_chunk(chunk) for chunk in d]
-        # tempcol = "tempcol{time}".format(time = time.time())
-        # d.loc[:, tempcol] = d[args.chrom].str.replace("chr", "")
-        for chunk in d:
-            chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(myQuery_str(x['chrom'], x['pos'])), axis=1)
-            l.append(chunk)
-            print("chunk processed")
+    l = [apply_on_chunk(chunk, args.chrom-type, tb) for chunk in d]
+    # """ Get rsid """
+    # if args.chromType == "object":
+    #     l = [apply_on_chunk(chunk) for chunk in d]
+    #     # tempcol = "tempcol{time}".format(time = time.time())
+    #     # d.loc[:, tempcol] = d[args.chrom].str.replace("chr", "")
+    #     for chunk in d:
+    #         chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(myQuery_str(x['chrom'], x['pos'])), axis=1)
+    #         l.append(chunk)
+    #         print("chunk processed")
         
-        # # d.loc[:,'snpRsID'] = d.apply(lambda x: peek(myQuery_str(x[tempcol], x[args.pos])), axis=1)
-        # d.drop(tempcol, axis=1, inplace=True)
+    #     # # d.loc[:,'snpRsID'] = d.apply(lambda x: peek(myQuery_str(x[tempcol], x[args.pos])), axis=1)
+    #     # d.drop(tempcol, axis=1, inplace=True)
         
-    elif args.chromType == "int64":
-        for chunk in d:
+    # elif args.chromType == "int64":
+    #     for chunk in d:
             chunk.loc[:,'snpRsID'] = chunk.apply(lambda x: peek(myQuery_int(x['chrom'], x['pos'])), axis=1)
             l.append(chunk)
 
