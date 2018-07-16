@@ -1,6 +1,3 @@
-# Script function:
-# 1. From the GREGOR output folder, obtain GWAS loci that overlap. Take LD SNPs for each  GWAS locus .
-# 2. Overlap all tag + LD with the original bed file, report all overlapping SNPs
 
 
 #!/usr/bin/env python
@@ -31,17 +28,13 @@ def makeLdBedFile(df):  # From index SNP and LD buddy dataframe, make bed file w
     
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Compile LD SNPs and index SNPs themselves form the index_SNP folder from a GREGOR output.', usage='python gregorFindAllLdSnps.py <path/to/index_SnpFile/index.snp.LD.txt>')
+    parser = argparse.ArgumentParser(description='Compile LD SNPs and index SNPs themselves form the index_SNP folder from a GREGOR output.',
+                                     usage='python gregorFindAllLdSnps.py <path/to/index_SnpFile/index.snp.LD.txt> <outputfile>')
     parser.add_argument('gregorOutputFile', type=str, help="""GREGOR output file for index.snp.LD.txt """)
-    parser.add_argument('outputfile', help ="""Output file. Will contain these new columns: chrom_overlapSNP start_overlapSNP end_overlapSNP pos_indexSNP""")
+    parser.add_argument('outputfile', help ="""Output file. Will contain these new columns: chrom_proxySNP start_proxySNP end_proxySNP pos_indexSNP""")
     args = parser.parse_args()
 
     outputfile = args.outputfile
     outdf = pandas.DataFrame()
     indexSNPFile = pandas.read_csv(args.gregorOutputFile, sep='\t')
     makeLdBedFile(indexSNPFile).to_csv(outputfile, sep='\t', index=False, header=False)
-    # if not df.empty:
-#             ldBedFile = makeLdBedFile(df)
-#             outdf = outdf.append(ldBedFile, ignore_index=True)
-
-# outdf.to_csv(outputfile, sep='\t', index=False, header=False)
