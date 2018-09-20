@@ -28,8 +28,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Compile dataframe from GREGOR output folders.')
     parser.add_argument('--filename', nargs='+', type=str, help="""The StatisticSummaryFile from GREGOR.""")
-    parser.add_argument('-f','--nameFieldSeparator', type=str, default='.', help="""Field separator to make columns from bed file name. (Default='.'). Example - if input bed files were of the form "Islets.stretchEnhancer.bed", output dataframe will have columns 'Islets stretchEnhancer'. Header anme to be provided using the --header option""")
-    parser.add_argument('--jobFieldSeparator', type=str, default='_', help="""Field separator to make columns from the path to Statistic summary file. (Default='_'). Example, if the path was """)
+    parser.add_argument('-f','--nameFieldSeparator', type=str, default='.',
+                        help="""Field separator to make columns from bed file name. (Default='.')."""
+                        """Example - if input bed files were of the form "Islets.stretchEnhancer.bed", output dataframe will have columns 'Islets stretchEnhancer'."""
+                        """Header name to be provided using the --header option""")
+    parser.add_argument('--jobFieldSeparator', type=str, default='_',
+                        help="""Field separator to make columns from the path to Statistic summary file. (Default='_')."""
+                        """Example, if the path was /lab/work/output_T2D, output dataframe will have column with value = T2D """)
     parser.add_argument('--outputfilename', help="""Output file name.""")
     parser.add_argument('--header', nargs='+', type=str, help="""Space separated list of column names for output file""")
 
