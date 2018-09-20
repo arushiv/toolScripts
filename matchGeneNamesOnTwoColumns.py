@@ -1,5 +1,5 @@
 # Match gene name on provided column, add matching entries into separate files.
-# Ex. binQuintile file at /lab/arushiv/chromatin/2015_12_08_islet_eQTL/eqtl_binnedByIsletGenes/bins.protein_coding.binQuintile.1.byGenes contains gene names that are in Quintile 1
+
 #!/usr/bin/env python
 
 
@@ -36,25 +36,39 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(description='Perform inner join on a specified column in two files')
-    parser.add_argument('file1', help="""The first file with column to match on, tab delimited, no header""")
-    parser.add_argument('file2', help="""The second file with column to match on, tab delimited, no header""")
+    parser.add_argument('file1', help="""The first file with column to match on, tab delimited. If file does not contain header, provide column_1 option below""")
+    parser.add_argument('file2', help="""The second file with column to match on, tab delimited. If file does not contain header, provide column_2 option below""")
     parser.add_argument('-c1', '--column_1', type=int, default=1, help="""The column number in the first file.""")
     parser.add_argument('-c2', '--column_2', type=int, default=1, help="""The column number in the second file.""")
+    parser.add_argument('--left_on', type=str, help="""The column name in the first file to merge on.""")
+    parser.add_argument('--right_on', type=str, help="""The column name in the second file to merge on.""")
+
     parser.add_argument('outputfile', help="""Name of the output file.""")
     parser.add_argument('-matchType', type=str, default="full", help="""'full' if gene name in two files match exactly. 'partial' if names in both files do not contain .x extensions. Default = 'full'""")
 
     args = parser.parse_args()
 
-    file1 = pandas.read_csv(args.file1, sep='\t', header = None, dtype=str)
-    file2 = pandas.read_csv(args.file2, sep='\t', header = None, dtype=str)
-    column_1 = args.column_1 - 1  ## Because Python index starts from 0
-    column_2 = args.column_2 - 1
+    if args.column_1:
+        file1 = pandas.read_csv(args.file1, sep='\t', header = None, dtype=str)
+        column_1 = args.column_1 - 1  ## Because Python index starts from 0
+    else:
+        file1 = pandas.read_csv(args.file1, sep='\t')
+
+    if args.column_2:
+        file2 = pandas.read_csv(args.file2, sep='\t', header = None, dtype=str)
+        column_2 = args.column_2 - 1
+    else:
+        file2 = pandas.read_csv(args.file2, sep='\t')
+        
+
     outputfile = args.outputfile
     matchType = args.matchType
 
+    
     if matchType == "partial":
         df = splitByQuantile_partial(file1, file2, column_1, column_2)
     elif matchType == "full":
         df = splitByQuantile_full(file1, file2, column_1, column_2)
+
     print("Match Type was %s"%matchType)
     writeToFile(df, outputfile)
