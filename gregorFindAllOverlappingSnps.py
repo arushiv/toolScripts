@@ -15,8 +15,10 @@ def getLdSnps(files, gregorOutputFolder):  # from index.SNP.in.LD.Chrxx files, m
         name = os.path.basename(files.rstrip())
         mdf = pandas.DataFrame()
         for overlapFile in glob.glob(os.path.join(gregorOutputFolder, name, "index.snp.LD.on.chr*")):
+                
                 # if sum(1 for line in open(overlapFile)) > 1:
-                df = pandas.read_table(overlapFile, sep='\t', dtype={'LD_buddy_pos': str}) 
+                df = pandas.read_table(overlapFile, sep='\t', dtype={'LD_buddy_pos': str})
+
                 mdf = mdf.append(df, ignore_index=True)
 
         return mdf
@@ -64,6 +66,7 @@ if __name__ == '__main__':
 
 for files in bedList:
         df = getLdSnps(files, gregorOutputFolder)
+        df['index_SNP'] = df['index_SNP'].map(lambda x: x if x.startswith('chr') else f"chr{x}")
         if not df.empty:
                 print(files)
                 ldBedFile = makeLdBedFile(df)
